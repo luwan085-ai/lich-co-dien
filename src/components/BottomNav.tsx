@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/tokens';
 
@@ -31,7 +31,7 @@ export function BottomNav({ active, fontFamily, onPressTab }: Props) {
         return (
           <Pressable
             key={tab.id}
-            style={styles.item}
+            style={[styles.item, isActive && styles.itemActive]}
             onPress={() => onPressTab(tab.id)}
             accessibilityRole="tab"
             accessibilityLabel={tab.label}
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    paddingTop: 8,
+    paddingTop: 6,
     paddingBottom: 4,
   },
   item: {
@@ -75,6 +75,14 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: 'center',
     paddingVertical: 4,
+    borderTopWidth: 2,
+    borderTopColor: 'transparent',
+    ...(Platform.OS === 'web'
+      ? ({ outlineStyle: 'none' } as object)
+      : null),
+  },
+  itemActive: {
+    borderTopColor: colors.crimson,
   },
   label: {
     fontSize: 9,

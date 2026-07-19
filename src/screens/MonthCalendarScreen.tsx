@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  AppState,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { MonthSelectedDayCard } from '../components/MonthSelectedDayCard';
 import { MonthYearPicker } from '../components/MonthYearPicker';
 import { loadMemoMap, annivKindOnLunar, type DayMemo } from '../lib/localMemos';
 import { loadLastVisit, markVisitToday } from '../lib/visits';
 import { getMonthGrid } from '../lunar/today';
-import { solarKey, type SolarDate } from '../lunar/solar';
+import { isSameSolar, solarKey, type SolarDate } from '../lunar/solar';
 import { getVietnamSolarToday } from '../lunar/vietnamTime';
 import type { DayQualityTone } from '../lunar/today';
 import { colors, spacing } from '../theme/tokens';
@@ -15,6 +23,7 @@ type Props = {
   selected?: SolarDate;
   memoRefreshKey?: number;
   onSelectDay: (day: SolarDate) => void;
+  onOpenDay: (day: SolarDate) => void;
 };
 
 const WEEK = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
@@ -33,6 +42,7 @@ export function MonthCalendarScreen({
   selected,
   memoRefreshKey = 0,
   onSelectDay,
+  onOpenDay,
 }: Props) {
   const [today, setToday] = useState(() => getVietnamSolarToday());
   const todayKey = solarKey(today);
@@ -43,6 +53,13 @@ export function MonthCalendarScreen({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [memos, setMemos] = useState<Record<string, DayMemo>>({});
   const [missedDays, setMissedDays] = useState(0);
+  const [picked, setPicked] = useState<SolarDate>(
+    () => selected ?? today,
+  );
+
+  useEffect(() => {
+    if (selected) setPicked(selected);
+  }, [selected?.year, selected?.month, selected?.day]);
 
   useEffect(() => {
     const refresh = () => setToday(getVietnamSolarToday());
@@ -106,8 +123,17 @@ export function MonthCalendarScreen({
     });
   };
 
+  const handlePick = (day: SolarDate) => {
+    setPicked(day);
+    onSelectDay(day);
+  };
+
   return (
-    <View style={styles.wrap}>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.header}>
         <Pressable style={styles.navBtn} onPress={() => shift(-1)}>
           <Text style={styles.navText}>‹</Text>
@@ -136,7 +162,7 @@ export function MonthCalendarScreen({
       {missedDays >= 2 ? (
         <Pressable
           style={styles.welcomeBack}
-          onPress={() => onSelectDay(today)}
+          onPress={() => handlePick(today)}
         >
           <Text style={styles.welcomeTitle}>Chào bạn quay lại</Text>
           <Text style={styles.welcomeBody}>
@@ -160,18 +186,14 @@ export function MonthCalendarScreen({
           }
           const key = solarKey(cell.solar);
           const memo = memos[key];
-          const hasMemo = Boolean(memo?.text);
+          const hasMemo = Boolean(memo?.text) && !memo?.isAnniversary;
           const lunarAnniv = {
             month: cell.lunarMonth,
             day: cell.lunarDay,
             leapMonth: cell.leapMonth,
           };
           const annivKind = annivKindOnLunar(memos, lunarAnniv);
-          const isSelected =
-            !!selected &&
-            selected.year === cell.solar.year &&
-            selected.month === cell.solar.month &&
-            selected.day === cell.solar.day;
+          const isSelected = isSameSolar(picked, cell.solar);
           return (
             <Pressable
               key={key}
@@ -179,11 +201,10 @@ export function MonthCalendarScreen({
                 styles.cell,
                 cell.isToday && styles.cellToday,
                 isSelected && styles.cellSelected,
-                annivKind === 'gio' && styles.cellGio,
-                annivKind === 'birthday' && styles.cellBirthday,
               ]}
-              onPress={() => onSelectDay(cell.solar)}
+              onPress={() => handlePick(cell.solar)}
             >
+              {annivKind === 'gio' ? <View style={styles.gioStripe} /> : null}
               <Text
                 style={[
                   styles.solarDay,
@@ -198,13 +219,10 @@ export function MonthCalendarScreen({
                 <View
                   style={[styles.dot, { backgroundColor: DOT[cell.tone] }]}
                 />
-                {annivKind === 'gio' ? (
-                  <Text style={styles.gioMark}>吉</Text>
-                ) : null}
                 {annivKind === 'birthday' ? (
-                  <Text style={styles.birthdayMark}>寿</Text>
+                  <Text style={styles.birthdayStar}>★</Text>
                 ) : null}
-                {hasMemo && !annivKind ? <View style={styles.memoDot} /> : null}
+                {hasMemo ? <View style={styles.memoDot} /> : null}
               </View>
             </Pressable>
           );
@@ -214,9 +232,17 @@ export function MonthCalendarScreen({
       <View style={styles.legend}>
         <LegendDot color={DOT.great} label="Hoàng / Cát" />
         <LegendDot color={DOT.neutral} label="Bình" />
-        <LegendDot color={colors.crimson} label="Giỗ âm" />
-        <LegendDot color={colors.goldDeep} label="Sinh nhật" />
+        <LegendBar label="Giỗ âm" />
+        <LegendStar label="Sinh nhật" />
       </View>
+
+      <MonthSelectedDayCard
+        selected={picked}
+        memos={memos}
+        fontFamily={fontFamily}
+        displayFont={displayFont}
+        onOpenDay={onOpenDay}
+      />
 
       <MonthYearPicker
         visible={pickerOpen}
@@ -228,7 +254,7 @@ export function MonthCalendarScreen({
           setCursor({ year, month });
         }}
       />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -241,11 +267,32 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
+function LegendBar({ label }: { label: string }) {
+  return (
+    <View style={styles.legendItem}>
+      <View style={styles.legendBar} />
+      <Text style={styles.legendText}>{label}</Text>
+    </View>
+  );
+}
+
+function LegendStar({ label }: { label: string }) {
+  return (
+    <View style={styles.legendItem}>
+      <Text style={styles.legendStarIcon}>★</Text>
+      <Text style={styles.legendText}>{label}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  wrap: {
+  scroll: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: spacing.page,
     paddingTop: 14,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
@@ -324,20 +371,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     paddingVertical: 4,
+    overflow: 'hidden',
   },
   cellToday: {
     backgroundColor: '#FFF1F2',
   },
   cellSelected: {
     backgroundColor: '#F3E6C8',
+    borderWidth: 1,
+    borderColor: colors.goldDeep,
   },
-  cellGio: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.crimson,
-  },
-  cellBirthday: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.goldDeep,
+  gioStripe: {
+    position: 'absolute',
+    left: 0,
+    top: 5,
+    bottom: 5,
+    width: 3,
+    backgroundColor: colors.crimson,
   },
   solarDay: {
     fontSize: 15,
@@ -371,28 +421,33 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: colors.goldDeep,
+    backgroundColor: colors.inkFaint,
   },
-  gioMark: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: colors.crimson,
-    lineHeight: 11,
-  },
-  birthdayMark: {
-    fontSize: 9,
+  birthdayStar: {
+    fontSize: 8,
+    lineHeight: 10,
     fontWeight: '800',
     color: colors.goldDeep,
-    lineHeight: 11,
   },
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 14,
-    paddingHorizontal: 4,
+    gap: 8,
+    marginTop: 10,
+    paddingHorizontal: 2,
   },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendText: { fontSize: 11, color: colors.inkMuted },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  legendDot: { width: 6, height: 6, borderRadius: 3 },
+  legendBar: {
+    width: 3,
+    height: 10,
+    backgroundColor: colors.crimson,
+  },
+  legendStarIcon: {
+    fontSize: 9,
+    lineHeight: 10,
+    color: colors.goldDeep,
+    fontWeight: '800',
+  },
+  legendText: { fontSize: 9, color: colors.inkFaint, fontWeight: '600' },
 });

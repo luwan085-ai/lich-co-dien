@@ -171,7 +171,8 @@ function AppShell() {
             displayFont={fonts?.display}
             selected={selected}
             memoRefreshKey={memoRefreshKey}
-            onSelectDay={(day) => {
+            onSelectDay={setSelected}
+            onOpenDay={(day) => {
               setSelected(day);
               setTab('today');
             }}
