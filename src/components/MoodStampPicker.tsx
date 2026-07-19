@@ -17,6 +17,8 @@ type Props = {
   fontFamily?: string;
   /** Profile card — no collapsible home panel wrapper. */
   plain?: boolean;
+  /** Profile compact — hide stamp bang animation slot. */
+  compact?: boolean;
   onPick: (mood: Mood) => void;
 };
 
@@ -24,6 +26,7 @@ export function MoodStampPicker({
   selected,
   fontFamily,
   plain,
+  compact,
   onPick,
 }: Props) {
   const scale = useSharedValue(0);
@@ -82,7 +85,7 @@ export function MoodStampPicker({
         })}
       </View>
 
-      <View style={styles.bangSlot}>
+      <View style={[styles.bangSlot, compact && styles.bangSlotHidden]}>
         {active ? (
           <Animated.View
             style={[
@@ -152,6 +155,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 4,
     pointerEvents: 'none',
+  },
+  bangSlotHidden: {
+    height: 0,
+    marginTop: 0,
+    overflow: 'hidden',
   },
   bang: {
     width: 64,

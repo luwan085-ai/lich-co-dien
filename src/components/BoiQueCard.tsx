@@ -32,9 +32,10 @@ const LOTS = [
 
 type Props = {
   fontFamily?: string;
+  compact?: boolean;
 };
 
-export function BoiQueCard({ fontFamily }: Props) {
+export function BoiQueCard({ fontFamily, compact = false }: Props) {
   const day = useMemo(() => getCalendarDay(), []);
   const [result, setResult] = useState<(typeof LOTS)[number] | null>(null);
   const [shaking, setShaking] = useState(false);
@@ -54,12 +55,13 @@ export function BoiQueCard({ fontFamily }: Props) {
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, compact && styles.cardCompact]}>
       <Text style={[styles.title, fontFamily ? { fontFamily } : null]}>
-        BÓI QUẺ (DEMO)
+        BÓI QUẺ
       </Text>
       <Text style={styles.sub}>
-        Rút quẻ nhanh theo ngày {day.canChi.day} · không phải bản sao Zagome
+        Rút quẻ nhanh theo ngày {day.canChi.day} · giải trí, không thay thế tư
+        vấn chuyên môn
       </Text>
 
       <Pressable
@@ -90,6 +92,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  cardCompact: {
+    marginTop: 14,
+    padding: 0,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+  },
   title: {
     color: colors.crimson,
     fontSize: 12,
@@ -105,14 +113,14 @@ const styles = StyleSheet.create({
   btn: {
     marginTop: 12,
     backgroundColor: colors.lacquer,
-    paddingVertical: 12,
+    paddingVertical: 11,
     alignItems: 'center',
   },
   btnDisabled: { opacity: 0.7 },
   btnText: {
     color: colors.white,
     fontWeight: '800',
-    fontSize: 13,
+    fontSize: 12,
   },
   result: {
     marginTop: 12,
@@ -121,7 +129,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   resultName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
     color: colors.ink,
   },

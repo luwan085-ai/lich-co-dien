@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { HoroscopeEntertainmentSection } from '../components/HoroscopeEntertainmentSection';
 import { KillerPackTray } from '../components/KillerPackTray';
-import { BoiQueCard } from '../components/BoiQueCard';
-import { buildDailyHoroscope } from '../data/horoscope';
+import { buildDailyHoroscope, type FacetScores } from '../data/horoscope';
+import { loadHoroscopeProfile } from '../lib/horoscopeProfile';
+import { nenDigestLine, kiengDigestLine } from '../lib/dayDigest';
 import { getCalendarDay } from '../lunar/today';
 import { useRewardedAdGate } from '../monetization/ads';
 import { usePremium } from '../monetization/premium';
@@ -13,12 +15,32 @@ type Props = {
   displayFont?: string;
 };
 
+const FACETS: { key: keyof FacetScores; label: string }[] = [
+  { key: 'love', label: 'Tình cảm' },
+  { key: 'work', label: 'Công việc' },
+  { key: 'money', label: 'Tài lộc' },
+  { key: 'health', label: 'Sức khỏe' },
+];
+
 export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
   const day = useMemo(() => getCalendarDay(), []);
-  const data = useMemo(() => buildDailyHoroscope(day), [day]);
+  const [profileAnimal, setProfileAnimal] = useState<string | null>(null);
+  const data = useMemo(
+    () => buildDailyHoroscope(day, profileAnimal),
+    [day, profileAnimal],
+  );
   const { isPremium } = usePremium();
   const { loading, showRewarded, AdOverlay } = useRewardedAdGate();
   const [unlocked, setUnlocked] = useState(false);
+
+  const refreshProfile = useCallback(async () => {
+    const profile = await loadHoroscopeProfile();
+    setProfileAnimal(profile.animal ?? null);
+  }, []);
+
+  useEffect(() => {
+    void refreshProfile();
+  }, [refreshProfile]);
 
   useEffect(() => {
     if (isPremium) setUnlocked(true);
@@ -42,7 +64,7 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
       >
         <View style={styles.hero}>
           <Text style={[styles.kicker, fontFamily ? { fontFamily } : null]}>
-            TỬ VI TRONG NGÀY
+            TỬ VI · HÔM NAY CỦA BẠN
           </Text>
           <Text
             style={[
@@ -50,28 +72,61 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
               displayFont ? { fontFamily: displayFont } : null,
             ]}
           >
-            {data.yearHeadline}
+            {data.personalHeadline}
           </Text>
-          <Text style={styles.sub}>
+          <Text style={styles.sub}>{data.personalSub}</Text>
+          <Text style={styles.meta}>
+            {data.yearHeadline}
+            {' · '}
             {day.weekdayVi} · {day.solar.day}/{day.solar.month}/{day.solar.year}
             {' · '}
             Ngày {data.dayCanChi}
           </Text>
           <Text style={styles.path}>
             {day.dayPathLabel} · {day.qualityLabel}
-            {data.yearElement ? ` · hành ${data.yearElement}` : ''}
-          </Text>
-          <Text style={styles.elementNote} numberOfLines={3}>
-            {data.elementNote}
           </Text>
           <View style={styles.scorePill}>
             <Text style={styles.scoreText}>Điểm ngày {data.score}/100</Text>
           </View>
         </View>
 
+        <View style={styles.facetCard}>
+          <Text style={[styles.sectionKicker, fontFamily ? { fontFamily } : null]}>
+            BỐN LĨNH VỰC
+          </Text>
+          {FACETS.map(({ key, label }) => (
+            <FacetRow
+              key={key}
+              label={label}
+              score={data.facetScores[key]}
+              fontFamily={fontFamily}
+            />
+          ))}
+        </View>
+
+        <View style={styles.adviceCard}>
+          <Text style={[styles.sectionKicker, fontFamily ? { fontFamily } : null]}>
+            LỜI GỢI Ý HÔM NAY
+          </Text>
+          {data.adviceLines.map((line, idx) => (
+            <Text
+              key={idx}
+              style={[
+                styles.adviceLine,
+                !unlocked && idx > 0 ? styles.adviceLocked : null,
+                fontFamily ? { fontFamily } : null,
+              ]}
+            >
+              {idx + 1}. {unlocked || idx === 0 ? line : '···'}
+            </Text>
+          ))}
+          <Text style={[styles.caution, fontFamily ? { fontFamily } : null]}>
+            {data.cautionLine}
+          </Text>
+        </View>
+
         {!unlocked ? (
           <View style={styles.lockCard}>
-            <Text style={styles.lockTitle}>Bản xem trước</Text>
             <Text style={styles.lockBody}>{data.lockedPreview}</Text>
             <Pressable
               style={[styles.cta, loading && styles.ctaDisabled]}
@@ -79,51 +134,75 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
               disabled={loading}
             >
               <Text style={[styles.ctaText, fontFamily ? { fontFamily } : null]}>
-                {loading
-                  ? 'Đang mở…'
-                  : isPremium
-                    ? 'Mở tử vi (Premium)'
-                    : 'Xem quảng cáo · mở chi tiết'}
+                {loading ? 'Đang mở…' : 'Mở luận giải đầy đủ'}
               </Text>
             </Pressable>
-            <Text style={styles.hint}>
-              {isPremium
-                ? 'Premium không cần xem quảng cáo'
-                : 'Xem hết ~5s (sim) · sau gắn AdMob 30s trên bản native'}
-            </Text>
+            {!isPremium ? (
+              <Text style={styles.hint}>
+                Xem quảng cáo ngắn để mở · giải trí, không đảm bảo kết quả
+              </Text>
+            ) : (
+              <Text style={styles.hint}>Premium — không cần quảng cáo</Text>
+            )}
           </View>
         ) : (
-          <View style={styles.grid}>
-            <Row title="Tổng quan" body={data.overall} fontFamily={fontFamily} />
-            <Row
-              title={`Khí năm · ${data.yearAnimal ?? '—'}`}
-              body={data.elementNote}
-              fontFamily={fontFamily}
-            />
-            <Row title="Tình cảm" body={data.love} fontFamily={fontFamily} />
-            <Row title="Công việc" body={data.work} fontFamily={fontFamily} />
-            <Row title="Tài lộc" body={data.money} fontFamily={fontFamily} />
-            <Row title="Lời khuyên" body={data.advice} fontFamily={fontFamily} />
-            <Row
+          <View style={styles.detailGrid}>
+            <DetailRow title="Tổng quan" body={data.overall} fontFamily={fontFamily} />
+            <DetailRow title="Tình cảm" body={data.love} fontFamily={fontFamily} />
+            <DetailRow title="Công việc" body={data.work} fontFamily={fontFamily} />
+            <DetailRow title="Tài lộc" body={data.money} fontFamily={fontFamily} />
+            <DetailRow title="Sức khỏe" body={data.health} fontFamily={fontFamily} />
+            <DetailRow title="Lời khuyên" body={data.advice} fontFamily={fontFamily} />
+            <DetailRow
               title="Nên / Kiêng hôm nay"
-              body={`Nên: ${day.shouldDo.slice(0, 3).join(', ') || '—'}\nKiêng: ${day.avoidDo.slice(0, 3).join(', ') || '—'}`}
+              body={`${nenDigestLine(day)}\n${kiengDigestLine(day)}`}
               fontFamily={fontFamily}
             />
           </View>
         )}
 
         <View style={styles.blockKill}>
-          <KillerPackTray day={day} fontFamily={fontFamily} />
+          <KillerPackTray day={day} fontFamily={fontFamily} coreOnly />
         </View>
 
-        <BoiQueCard fontFamily={fontFamily} />
+        <HoroscopeEntertainmentSection day={day} fontFamily={fontFamily} />
+
+        <Text style={styles.footerLegal}>
+          Nội dung giải trí · không thay thế tư vấn chuyên môn. Người dưới 18 tuổi
+          không tham gia xổ số.
+        </Text>
       </ScrollView>
       <AdOverlay />
     </>
   );
 }
 
-function Row({
+function FacetRow({
+  label,
+  score,
+  fontFamily,
+}: {
+  label: string;
+  score: number;
+  fontFamily?: string;
+}) {
+  const width = `${score}%`;
+  return (
+    <View style={styles.facetRow}>
+      <View style={styles.facetTop}>
+        <Text style={[styles.facetLabel, fontFamily ? { fontFamily } : null]}>
+          {label}
+        </Text>
+        <Text style={styles.facetScore}>{score}</Text>
+      </View>
+      <View style={styles.facetTrack}>
+        <View style={[styles.facetFill, { width: width as `${number}%` }]} />
+      </View>
+    </View>
+  );
+}
+
+function DetailRow({
   title,
   body,
   fontFamily,
@@ -133,11 +212,11 @@ function Row({
   fontFamily?: string;
 }) {
   return (
-    <View style={styles.row}>
-      <Text style={[styles.rowTitle, fontFamily ? { fontFamily } : null]}>
+    <View style={styles.detailRow}>
+      <Text style={[styles.detailTitle, fontFamily ? { fontFamily } : null]}>
         {title}
       </Text>
-      <Text style={styles.rowBody}>{body}</Text>
+      <Text style={styles.detailBody}>{body}</Text>
     </View>
   );
 }
@@ -165,25 +244,26 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 8,
     color: colors.white,
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: '700',
+    lineHeight: 34,
   },
   sub: {
     marginTop: 6,
-    color: 'rgba(255,250,243,0.78)',
+    color: 'rgba(255,250,243,0.82)',
     fontSize: 12,
+    lineHeight: 18,
+  },
+  meta: {
+    marginTop: 8,
+    color: 'rgba(255,250,243,0.72)',
+    fontSize: 11,
   },
   path: {
-    marginTop: 8,
+    marginTop: 6,
     color: colors.goldSoft,
     fontSize: 12,
     fontWeight: '700',
-  },
-  elementNote: {
-    marginTop: 8,
-    color: 'rgba(255,250,243,0.72)',
-    fontSize: 12,
-    lineHeight: 18,
   },
   scorePill: {
     alignSelf: 'flex-start',
@@ -197,61 +277,128 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
   },
-  lockCard: {
+  facetCard: {
     marginTop: 14,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 14,
+    gap: 10,
+  },
+  sectionKicker: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    color: colors.crimson,
+    marginBottom: 2,
+  },
+  facetRow: { gap: 4 },
+  facetTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  facetLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.ink,
+  },
+  facetScore: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.crimsonDeep,
+  },
+  facetTrack: {
+    height: 4,
+    backgroundColor: colors.border,
+    overflow: 'hidden',
+  },
+  facetFill: {
+    height: 4,
+    backgroundColor: colors.crimson,
+  },
+  adviceCard: {
+    marginTop: 10,
+    backgroundColor: '#FFFBF5',
+    borderWidth: 1,
+    borderColor: 'rgba(196, 30, 58, 0.15)',
+    padding: 14,
+  },
+  adviceLine: {
+    marginTop: 6,
+    fontSize: 13,
+    lineHeight: 20,
+    color: colors.ink,
+    fontWeight: '600',
+  },
+  adviceLocked: {
+    color: colors.inkFaint,
+  },
+  caution: {
+    marginTop: 10,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '700',
+    color: colors.crimsonDeep,
+  },
+  lockCard: {
+    marginTop: 12,
     backgroundColor: colors.paper,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 16,
   },
-  lockTitle: {
-    color: colors.crimson,
-    fontSize: 13,
-    fontWeight: '800',
-  },
   lockBody: {
-    marginTop: 8,
     color: colors.inkMuted,
     fontSize: 13,
     lineHeight: 20,
   },
   cta: {
-    marginTop: 16,
-    backgroundColor: colors.crimson,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: colors.crimson,
+    backgroundColor: colors.paper,
     paddingVertical: 12,
     alignItems: 'center',
   },
   ctaDisabled: { opacity: 0.7 },
   ctaText: {
-    color: colors.white,
+    color: colors.crimson,
     fontWeight: '800',
     fontSize: 13,
-    letterSpacing: 0.4,
   },
   hint: {
-    marginTop: 10,
+    marginTop: 8,
     fontSize: 10,
     color: colors.inkFaint,
     lineHeight: 14,
+    textAlign: 'center',
   },
-  grid: { marginTop: 14, gap: 10 },
+  detailGrid: { marginTop: 12, gap: 8 },
   blockKill: { marginTop: 14 },
-  row: {
+  detailRow: {
     backgroundColor: colors.paper,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 14,
   },
-  rowTitle: {
+  detailTitle: {
     color: colors.crimson,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
   },
-  rowBody: {
+  detailBody: {
     marginTop: 6,
     color: colors.ink,
     fontSize: 13,
     lineHeight: 20,
+  },
+  footerLegal: {
+    marginTop: 16,
+    fontSize: 10,
+    lineHeight: 14,
+    color: colors.inkFaint,
+    textAlign: 'center',
   },
 });

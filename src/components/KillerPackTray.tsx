@@ -16,6 +16,8 @@ import { colors } from '../theme/tokens';
 type Props = {
   day: CalendarDay;
   fontFamily?: string;
+  /** Hide lottery block — use HoroscopeEntertainmentSection on Tử vi. */
+  coreOnly?: boolean;
 };
 
 function fillVanKhan(body: string, day: CalendarDay): string {
@@ -24,7 +26,7 @@ function fillVanKhan(body: string, day: CalendarDay): string {
     .replace('tháng ...', `tháng ${day.lunar.month}`);
 }
 
-export function KillerPackTray({ day, fontFamily }: Props) {
+export function KillerPackTray({ day, fontFamily, coreOnly = false }: Props) {
   const pack = useMemo(() => buildKillerPack(day), [day]);
   const [khan, setKhan] = useState<VanKhanArticle | null>(null);
 
@@ -91,6 +93,7 @@ export function KillerPackTray({ day, fontFamily }: Props) {
         ))}
       </Card>
 
+      {!coreOnly ? (
       <Card
         title="🎱 Cặp số may mắn hôm nay"
         desc="Số Đề / Lô Tô · gợi ý vui 00–99 cho xổ số kiến thiết chiều nay."
@@ -117,6 +120,7 @@ export function KillerPackTray({ day, fontFamily }: Props) {
           khai.
         </Text>
       </Card>
+      ) : null}
 
       <Modal visible={Boolean(khan)} animationType="slide" transparent>
         <View style={styles.modalBackdrop}>
