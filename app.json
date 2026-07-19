@@ -23,7 +23,16 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-secure-store",
+      "expo-audio",
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#8B1520"
+        }
+      ]
     ]
   }
 }

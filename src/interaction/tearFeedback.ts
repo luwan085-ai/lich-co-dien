@@ -1,8 +1,8 @@
-import { Audio } from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
 
-let tearSound: Audio.Sound | null = null;
+let tearSound: AudioPlayer | null = null;
 let loading: Promise<void> | null = null;
 
 async function ensureTearSound() {
@@ -13,18 +13,15 @@ async function ensureTearSound() {
   }
   loading = (async () => {
     try {
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        allowsRecordingIOS: false,
-        staysActiveInBackground: false,
-        playThroughEarpieceAndroid: false,
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        interruptionMode: 'duckOthers',
+        allowsRecording: false,
+        shouldPlayInBackground: false,
       });
-      const { sound } = await Audio.Sound.createAsync(
-        require('../../assets/sounds/paper-tear.wav'),
-        { shouldPlay: false, volume: 1, isLooping: false },
-      );
-      tearSound = sound;
+      const player = createAudioPlayer(require('../../assets/sounds/paper-tear.wav'));
+      player.volume = 1;
+      tearSound = player;
     } catch {
       tearSound = null;
     } finally {
@@ -65,10 +62,9 @@ export async function playTearFeedback() {
     await ensureTearSound();
     const sound = tearSound;
     if (!sound) return;
-    await sound.stopAsync().catch(() => undefined);
-    await sound.setPositionAsync(0);
-    await sound.setVolumeAsync(1);
-    await sound.playAsync();
+    sound.volume = 1;
+    await sound.seekTo(0);
+    sound.play();
   } catch {
     tearSound = null;
     loading = null;

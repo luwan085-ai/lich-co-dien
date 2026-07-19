@@ -31,7 +31,7 @@ export function PaperTexture() {
   ] as const;
 
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+    <View style={[StyleSheet.absoluteFill, styles.root]}>
       {dots.map(([l, t], i) => (
         <View
           key={i}
@@ -50,6 +50,9 @@ export function PaperTexture() {
 }
 
 const styles = StyleSheet.create({
+  root: {
+    pointerEvents: 'none',
+  },
   dot: {
     position: 'absolute',
     width: 2,

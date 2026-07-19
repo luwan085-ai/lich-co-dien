@@ -12,7 +12,6 @@ export function CornerOrnament({
 
   return (
     <View
-      pointerEvents="none"
       style={[
         styles.wrap,
         position === 'tl' && styles.tl,
@@ -40,6 +39,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     zIndex: 3,
+    pointerEvents: 'none',
   },
   tl: { top: 6, left: 6 },
   tr: { top: 6, right: 6 },

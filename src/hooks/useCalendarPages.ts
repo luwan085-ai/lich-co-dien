@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getCalendarDayForSolar } from '../lunar/today';
 import {
   addSolarDays,
@@ -7,16 +7,31 @@ import {
   type SolarDate,
 } from '../lunar/solar';
 import { getVietnamHour, getVietnamSolarToday } from '../lunar/vietnamTime';
+import { loadPageMap, saveMood, savePraise } from '../lib/localMoods';
+import type { DatePageRecord, Mood, Praise } from '../types/mood';
 
-/** Per-date user data (stamps etc.) — local for now, Supabase in W4. */
-export type DatePageRecord = {
-  moodStamp?: 'happy' | 'calm' | 'angry' | 'sad' | 'jackpot';
+export type { DatePageRecord, Mood, Praise };
+
+type Options = {
+  selected: SolarDate;
+  onChangeSelected: (d: SolarDate) => void;
 };
 
-export function useCalendarPages(initial?: SolarDate) {
+export function useCalendarPages({ selected, onChangeSelected }: Options) {
   const today = useMemo(() => getVietnamSolarToday(), []);
-  const [selected, setSelected] = useState<SolarDate>(initial ?? today);
   const [records, setRecords] = useState<Record<string, DatePageRecord>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const map = await loadPageMap();
+      if (cancelled) return;
+      setRecords(map);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const hour = isSameSolar(selected, today) ? getVietnamHour() : 12;
 
@@ -34,23 +49,43 @@ export function useCalendarPages(initial?: SolarDate) {
     [selected, today],
   );
 
-  const goBy = useCallback((delta: number) => {
-    setSelected((prev) => addSolarDays(prev, delta));
-  }, []);
+  const goBy = useCallback(
+    (delta: number) => {
+      onChangeSelected(addSolarDays(selected, delta));
+    },
+    [onChangeSelected, selected],
+  );
 
   const goToday = useCallback(() => {
-    setSelected(getVietnamSolarToday());
-  }, []);
+    onChangeSelected(getVietnamSolarToday());
+  }, [onChangeSelected]);
 
   const pageRecord = records[solarKey(selected)];
 
   const setMoodStamp = useCallback(
-    (mood: DatePageRecord['moodStamp']) => {
+    (mood: Mood) => {
       const key = solarKey(selected);
       setRecords((prev) => ({
         ...prev,
         [key]: { ...prev[key], moodStamp: mood },
       }));
+      void saveMood(key, mood);
+    },
+    [selected],
+  );
+
+  const setPraiseStamp = useCallback(
+    (praise: Praise, inkSeed: number) => {
+      const key = solarKey(selected);
+      setRecords((prev) => ({
+        ...prev,
+        [key]: {
+          ...prev[key],
+          praiseStamp: praise,
+          praiseInkSeed: inkSeed,
+        },
+      }));
+      void savePraise(key, praise, inkSeed);
     },
     [selected],
   );
@@ -65,6 +100,7 @@ export function useCalendarPages(initial?: SolarDate) {
     today,
     todayDay,
     selected,
+    selectedKey: solarKey(selected),
     currentDay,
     peekDay,
     pageRecord,
@@ -73,5 +109,6 @@ export function useCalendarPages(initial?: SolarDate) {
     goPrev: () => goBy(-1),
     goToday,
     setMoodStamp,
+    setPraiseStamp,
   };
 }

@@ -5,7 +5,8 @@ import {
   useImperativeHandle,
   useState,
 } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -50,9 +51,10 @@ type Props = {
   onTornToday: () => void;
 };
 
-const COMMIT_RATIO = 0.26;
+const COMMIT_RATIO = 0.22;
 const TICK_EVERY = 36;
-const TEAR_MS = 440;
+const TEAR_MS = 400;
+const TEAR_HINT_KEY = 'lich_tear_hint_dismissed_v1';
 
 export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
   function TearablePaper(
@@ -77,9 +79,26 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
     const forcePeek = useSharedValue(0);
     const lastTick = useSharedValue(0);
     const [overridePeek, setOverridePeek] = useState<CalendarDay | null>(null);
+    const [showHint, setShowHint] = useState(false);
 
     useEffect(() => {
       preloadTearSound();
+    }, []);
+
+    useEffect(() => {
+      let alive = true;
+      void (async () => {
+        const dismissed = await AsyncStorage.getItem(TEAR_HINT_KEY);
+        if (alive && dismissed !== '1') setShowHint(true);
+      })();
+      return () => {
+        alive = false;
+      };
+    }, []);
+
+    const dismissHint = useCallback(() => {
+      setShowHint(false);
+      void AsyncStorage.setItem(TEAR_HINT_KEY, '1');
     }, []);
 
     useEffect(() => {
@@ -130,6 +149,7 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
     const startTear = useCallback(
       (mode: 'next' | 'prev' | 'today') => {
         if (busy.value) return;
+        dismissHint();
         busy.value = 1;
         void playTearFeedback();
 
@@ -165,7 +185,7 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
           easing: Easing.out(Easing.cubic),
         });
       },
-      [busy, curl, finishNext, finishPrev, finishToday, rot, tx, ty, width],
+      [busy, curl, dismissHint, finishNext, finishPrev, finishToday, rot, tx, ty, width],
     );
 
     useImperativeHandle(
@@ -206,12 +226,15 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
           lastTick.value = e.translationX;
           runOnJS(triggerTick)();
         }
+        if (Math.abs(e.translationX) > 28) {
+          runOnJS(dismissHint)();
+        }
       })
       .onEnd((e) => {
         if (busy.value) return;
         const threshold = Math.min(130, width * COMMIT_RATIO);
-        const goingNext = e.translationX < -threshold || e.velocityX < -850;
-        const goingPrev = e.translationX > threshold || e.velocityX > 850;
+        const goingNext = e.translationX < -threshold || e.velocityX < -700;
+        const goingPrev = e.translationX > threshold || e.velocityX > 700;
 
         if (goingNext || goingPrev) {
           runOnJS(startTear)(goingNext ? 'next' : 'prev');
@@ -231,7 +254,7 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
           { translateY: ty.value },
           { rotateZ: `${rot.value}deg` },
           {
-            scale: interpolate(curl.value, [0, 1], [1, 0.95], Extrapolation.CLAMP),
+            scale: interpolate(curl.value, [0, 1], [1, 0.93], Extrapolation.CLAMP),
           },
         ],
         opacity: interpolate(abs, [0, width * 0.95], [1, 0.15], Extrapolation.CLAMP),
@@ -270,34 +293,32 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
     });
 
     const hintStyle = useAnimatedStyle(() => ({
-      opacity: interpolate(Math.abs(tx.value), [0, 36], [1, 0], Extrapolation.CLAMP),
+      opacity: showHint
+        ? interpolate(Math.abs(tx.value), [0, 36], [1, 0], Extrapolation.CLAMP)
+        : 0,
     }));
 
     const peekForward = overridePeek ?? peekNext;
 
     return (
       <View style={styles.wrap}>
-        <Animated.View
-          style={[styles.peekLayer, nextPeekStyle]}
-          pointerEvents="none"
-        >
+        <Animated.View style={[styles.peekLayer, nextPeekStyle]}>
           <CalendarPaper day={peekForward} fonts={fonts} />
         </Animated.View>
-        <Animated.View
-          style={[styles.peekLayer, prevPeekStyle]}
-          pointerEvents="none"
-        >
+        <Animated.View style={[styles.peekLayer, prevPeekStyle]}>
           <CalendarPaper day={peekPrev} fonts={fonts} />
         </Animated.View>
 
         <GestureDetector gesture={pan}>
           <Animated.View style={[styles.front, frontStyle]}>
             <CalendarPaper day={day} fonts={fonts} />
-            <Animated.View style={[styles.hint, hintStyle]}>
-              <Text style={styles.hintText}>
-                ← xé tờ lịch · kéo phải xem hôm qua →
-              </Text>
-            </Animated.View>
+            {showHint ? (
+              <Animated.View style={[styles.hint, hintStyle]}>
+                <Pressable onPress={dismissHint} hitSlop={8}>
+                  <Text style={styles.hintText}>Vuốt trái để sang ngày</Text>
+                </Pressable>
+              </Animated.View>
+            ) : null}
           </Animated.View>
         </GestureDetector>
       </View>
@@ -312,6 +333,7 @@ const styles = StyleSheet.create({
   peekLayer: {
     ...StyleSheet.absoluteFill,
     zIndex: 0,
+    pointerEvents: 'none',
   },
   front: {
     zIndex: 2,

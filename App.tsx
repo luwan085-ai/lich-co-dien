@@ -1,5 +1,6 @@
-import { useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
+import { Mali_700Bold } from '@expo-google-fonts/mali';
 import {
   NotoSerif_400Regular_Italic,
   NotoSerif_700Bold,
@@ -10,30 +11,42 @@ import {
   BeVietnamPro_700Bold,
 } from '@expo-google-fonts/be-vietnam-pro';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { BottomNav } from './src/components/BottomNav';
-import { CalendarMount } from './src/components/CalendarMount';
+import { BottomNav, type TabId } from './src/components/BottomNav';
+import { HomeScreen } from './src/screens/HomeScreen';
+import { HoroscopeScreen } from './src/screens/HoroscopeScreen';
+import { MonthCalendarScreen } from './src/screens/MonthCalendarScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
+import { StepsScreen } from './src/screens/StepsScreen';
+import type { SolarDate } from './src/lunar/solar';
+import { solarKey } from './src/lunar/solar';
+import { getVietnamSolarToday } from './src/lunar/vietnamTime';
 import {
-  TearablePaper,
-  type TearablePaperHandle,
-} from './src/components/TearablePaper';
-import { WidgetTray } from './src/components/WidgetTray';
-import { useCalendarPages } from './src/hooks/useCalendarPages';
-import { colors, spacing } from './src/theme/tokens';
+  loadRamNotifEnabled,
+  scheduleRamNotifications,
+} from './src/lib/ramNotifications';
+import { markVisitToday } from './src/lib/visits';
+import { PremiumProvider } from './src/monetization/premium';
+import { colors } from './src/theme/tokens';
 
-function HomeScreen() {
-  const tearRef = useRef<TearablePaperHandle>(null);
-  const {
-    currentDay,
-    todayDay,
-    peekDay,
-    isToday,
-    goNext,
-    goPrev,
-    goToday,
-  } = useCalendarPages();
+function AppShell() {
+  const [tab, setTab] = useState<TabId>('today');
+  const [selected, setSelected] = useState<SolarDate>(() =>
+    getVietnamSolarToday(),
+  );
+  const [showSteps, setShowSteps] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      const today = getVietnamSolarToday();
+      await markVisitToday(solarKey(today));
+      if (await loadRamNotifEnabled()) {
+        await scheduleRamNotifications();
+      }
+    })();
+  }, []);
 
   const [fontsLoaded] = useFonts({
     NotoSerif_700Bold,
@@ -41,6 +54,7 @@ function HomeScreen() {
     BeVietnamPro_400Regular,
     BeVietnamPro_500Medium,
     BeVietnamPro_700Bold,
+    Mali_700Bold,
   });
 
   const fonts = fontsLoaded
@@ -50,60 +64,63 @@ function HomeScreen() {
         body: 'BeVietnamPro_400Regular',
         bodyMedium: 'BeVietnamPro_500Medium',
         bodySemi: 'BeVietnamPro_700Bold',
+        /** Handwriting with full VN diacritics (Cô / Thầy) */
+        stamp: 'Mali_700Bold',
       }
     : undefined;
 
-  const paperFonts = {
-    display: fonts?.display,
-    quote: fonts?.quote,
-    body: fonts?.body,
-    bodyMedium: fonts?.bodyMedium,
+  const onPressTab = (id: TabId) => {
+    setShowSteps(false);
+    setTab(id);
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.calendarCard}>
-          <CalendarMount fontFamily={fonts?.bodySemi} />
-          <TearablePaper
-            ref={tearRef}
-            day={currentDay}
-            todayDay={todayDay}
-            peekNext={peekDay('next')}
-            peekPrev={peekDay('prev')}
-            fonts={paperFonts}
-            onTornNext={goNext}
-            onTornPrev={goPrev}
-            onTornToday={goToday}
+      <View style={styles.body}>
+        {showSteps ? (
+          <StepsScreen
+            fontFamily={fonts?.bodySemi}
+            displayFont={fonts?.display}
+            onBack={() => setShowSteps(false)}
           />
-        </View>
-
-        {!isToday ? (
-          <Pressable
-            style={styles.todayChip}
-            onPress={() => tearRef.current?.tearToToday()}
-          >
-            <Text
-              style={[
-                styles.todayChipText,
-                fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null,
-              ]}
-            >
-              ✦ Về hôm nay ✦
-            </Text>
-          </Pressable>
         ) : null}
-
-        <View style={styles.trayWrap}>
-          <WidgetTray fontFamily={fonts?.bodySemi} />
-        </View>
-      </ScrollView>
+        {!showSteps && tab === 'today' ? (
+          <HomeScreen
+            fonts={fonts}
+            selected={selected}
+            onChangeSelected={setSelected}
+          />
+        ) : null}
+        {!showSteps && tab === 'month' ? (
+          <MonthCalendarScreen
+            fontFamily={fonts?.bodySemi}
+            displayFont={fonts?.display}
+            selected={selected}
+            onSelectDay={(day) => {
+              setSelected(day);
+              setTab('today');
+            }}
+          />
+        ) : null}
+        {!showSteps && tab === 'horoscope' ? (
+          <HoroscopeScreen
+            fontFamily={fonts?.bodySemi}
+            displayFont={fonts?.display}
+          />
+        ) : null}
+        {!showSteps && tab === 'profile' ? (
+          <ProfileScreen
+            fontFamily={fonts?.bodySemi}
+            onOpenSteps={() => setShowSteps(true)}
+          />
+        ) : null}
+      </View>
       <SafeAreaView edges={['bottom']} style={styles.navSafe}>
-        <BottomNav fontFamily={fonts?.bodySemi} />
+        <BottomNav
+          active={tab}
+          fontFamily={fonts?.bodySemi}
+          onPressTab={onPressTab}
+        />
       </SafeAreaView>
       <StatusBar style="dark" />
     </SafeAreaView>
@@ -114,7 +131,9 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <HomeScreen />
+        <PremiumProvider>
+          <AppShell />
+        </PremiumProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -129,35 +148,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.paperDeep,
   },
-  scroll: {
+  body: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.page,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  calendarCard: {
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  todayChip: {
-    alignSelf: 'center',
-    marginTop: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderWidth: 1,
-    borderColor: colors.crimson,
-    backgroundColor: colors.paper,
-  },
-  todayChipText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.crimson,
-    letterSpacing: 0.6,
-  },
-  trayWrap: {
-    marginTop: 12,
   },
   navSafe: {
     backgroundColor: colors.white,

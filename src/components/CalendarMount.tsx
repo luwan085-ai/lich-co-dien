@@ -1,11 +1,21 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useState, type ReactNode } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/tokens';
 
 type Props = {
+  /** Saved / draft wish shown on the lacquer bar */
+  wishText?: string;
   fontFamily?: string;
+  children?: ReactNode;
 };
 
-export function CalendarMount({ fontFamily }: Props) {
+/** Lacquer mount — bar shows the day’s wish; tap to edit. */
+export function CalendarMount({ wishText, fontFamily, children }: Props) {
+  const [open, setOpen] = useState(false);
+  const trimmed = wishText?.trim() ?? '';
+  const hasWish = trimmed.length > 0;
+
   return (
     <View style={styles.wrap}>
       <View style={styles.goldEdge} />
@@ -16,21 +26,36 @@ export function CalendarMount({ fontFamily }: Props) {
           </View>
         ))}
       </View>
-      <View style={styles.bar}>
-        <Text style={[styles.side, fontFamily ? { fontFamily } : null]}>
-          ✦ PHÚ QUÝ ✦
+
+      <Pressable
+        style={styles.bar}
+        onPress={() => setOpen((v) => !v)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+      >
+        <Text
+          style={[
+            hasWish ? styles.wish : styles.wishEmpty,
+            fontFamily ? { fontFamily } : null,
+          ]}
+          numberOfLines={2}
+        >
+          {hasWish ? trimmed : 'Viết điều ước của bạn'}
         </Text>
-        <View style={styles.centerBlock}>
-          <Text style={styles.leaf}>❀</Text>
-          <Text style={[styles.center, fontFamily ? { fontFamily } : null]}>
-            VINH HOA
-          </Text>
-          <Text style={styles.leaf}>❀</Text>
+        <Ionicons
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={16}
+          color={colors.goldSoft}
+          style={styles.chev}
+        />
+      </Pressable>
+
+      {open ? (
+        <View style={styles.drawer}>
+          <View style={styles.paperInset}>{children}</View>
         </View>
-        <Text style={[styles.side, fontFamily ? { fontFamily } : null]}>
-          ✦ CÁT TƯỜNG ✦
-        </Text>
-      </View>
+      ) : null}
+
       <View style={styles.goldEdgeBottom} />
     </View>
   );
@@ -75,30 +100,40 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingBottom: 9,
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingBottom: 10,
     paddingTop: 2,
   },
-  side: {
-    color: colors.goldSoft,
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.4,
-  },
-  centerBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  leaf: {
-    color: colors.goldSoft,
-    fontSize: 8,
-  },
-  center: {
+  wish: {
+    flex: 1,
     color: colors.white,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  wishEmpty: {
+    flex: 1,
+    color: 'rgba(255,250,243,0.55)',
     fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 2,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  chev: {
+    flexShrink: 0,
+  },
+  drawer: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  paperInset: {
+    backgroundColor: colors.paper,
+    borderRadius: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(240,215,140,0.45)',
   },
 });

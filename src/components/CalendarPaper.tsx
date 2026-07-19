@@ -22,6 +22,14 @@ const STAMPS: { ch: string; rot: string }[] = [
   { ch: '安', rot: '-3deg' },
 ];
 
+const QUALITY_COLOR: Record<CalendarDay['dayPathTone'], string> = {
+  great: colors.crimson,
+  good: colors.crimsonDeep,
+  neutral: colors.inkMuted,
+  poor: '#8B6914',
+  bad: '#5C2E2E',
+};
+
 export function CalendarPaper({ day, fonts }: Props) {
   const display = fonts?.display;
   const quote = fonts?.quote ?? display;
@@ -79,6 +87,16 @@ export function CalendarPaper({ day, fonts }: Props) {
           </View>
           <View style={styles.weekdayGold} />
         </View>
+
+        <Text
+          style={[
+            styles.qualityLine,
+            { color: QUALITY_COLOR[day.dayPathTone] },
+            bodyMed ? { fontFamily: bodyMed } : null,
+          ]}
+        >
+          {day.dayPathLabel} · {day.qualityLabel}
+        </Text>
 
         <Text style={[styles.lunarMonth, body ? { fontFamily: body } : null]}>
           {day.lunar.monthLabel} ({day.lunar.lengthLabel})
@@ -304,8 +322,15 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.4,
   },
+  qualityLine: {
+    marginTop: 7,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textAlign: 'center',
+  },
   lunarMonth: {
-    marginTop: 8,
+    marginTop: 6,
     fontSize: 11,
     color: colors.inkMuted,
     letterSpacing: 0.9,
@@ -338,9 +363,9 @@ const styles = StyleSheet.create({
   metaDivider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 4,
-    gap: 8,
+    marginTop: 6,
+    marginBottom: 2,
+    gap: 6,
     zIndex: 2,
   },
   metaDividerLine: {
@@ -355,7 +380,7 @@ const styles = StyleSheet.create({
   },
   metaRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
     zIndex: 2,
   },
   metaCol: {
@@ -366,7 +391,7 @@ const styles = StyleSheet.create({
   },
   quoteCol: {
     flex: 1.25,
-    paddingHorizontal: 7,
+    paddingHorizontal: 5,
     borderLeftWidth: 1,
     borderRightWidth: 1,
     borderColor: colors.gold,
@@ -378,9 +403,9 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   metaRed: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.crimsonDeep,
-    lineHeight: 16,
+    lineHeight: 14,
     fontWeight: '600',
   },
   metaSub: {
@@ -390,8 +415,8 @@ const styles = StyleSheet.create({
     color: colors.inkFaint,
   },
   quoteText: {
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 10,
+    lineHeight: 14,
     color: colors.ink,
     textAlign: 'center',
   },
@@ -410,24 +435,24 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   sectionGap: {
-    marginTop: 8,
+    marginTop: 6,
   },
   hourLine: {
-    fontSize: 9,
+    fontSize: 8,
     color: colors.ink,
-    lineHeight: 13,
+    lineHeight: 12,
   },
   favorText: {
-    fontSize: 9,
+    fontSize: 8,
     color: colors.inkMuted,
-    lineHeight: 13,
+    lineHeight: 12,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 12,
-    paddingTop: 8,
+    marginTop: 8,
+    paddingTop: 6,
     zIndex: 2,
   },
   stamps: {

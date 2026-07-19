@@ -1,0 +1,161 @@
+import { useEffect, useState } from 'react';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { loadMemo, saveMemo } from '../lib/localMemos';
+import { colors } from '../theme/tokens';
+
+type Props = {
+  dateKey: string;
+  fontFamily?: string;
+};
+
+export function DayMemoCard({ dateKey, fontFamily }: Props) {
+  const [text, setText] = useState('');
+  const [isAnniversary, setIsAnniversary] = useState(false);
+  const [savedHint, setSavedHint] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const memo = await loadMemo(dateKey);
+      if (!alive) return;
+      setText(memo?.text ?? '');
+      setIsAnniversary(Boolean(memo?.isAnniversary));
+      setSavedHint(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [dateKey]);
+
+  const persist = async (nextText: string, nextAnn: boolean) => {
+    await saveMemo(dateKey, nextText, nextAnn);
+    setSavedHint(true);
+    setTimeout(() => setSavedHint(false), 1200);
+  };
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <Text style={[styles.title, fontFamily ? { fontFamily } : null]}>
+          GHI CHÚ / GIỖ LỄ
+        </Text>
+        {savedHint ? <Text style={styles.saved}>Đã lưu</Text> : null}
+      </View>
+
+      <TextInput
+        style={styles.input}
+        value={text}
+        onChangeText={setText}
+        onBlur={() => {
+          void persist(text, isAnniversary);
+        }}
+        placeholder="Nhập ghi chú cho ngày này…"
+        placeholderTextColor={colors.inkFaint}
+        multiline
+        textAlignVertical="top"
+      />
+
+      <View style={styles.row}>
+        <Pressable
+          style={[styles.chip, isAnniversary && styles.chipOn]}
+          onPress={() => {
+            const next = !isAnniversary;
+            setIsAnniversary(next);
+            void persist(text, next);
+          }}
+        >
+          <Text style={[styles.chipText, isAnniversary && styles.chipTextOn]}>
+            Đánh dấu giỗ / kỷ niệm
+          </Text>
+        </Pressable>
+        <Pressable
+          style={styles.saveBtn}
+          onPress={() => {
+            void persist(text, isAnniversary);
+          }}
+        >
+          <Text style={styles.saveText}>Lưu</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.crimson,
+    letterSpacing: 0.6,
+  },
+  saved: {
+    fontSize: 11,
+    color: colors.inkFaint,
+    fontWeight: '600',
+  },
+  input: {
+    minHeight: 72,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.paper,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.ink,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  chip: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    backgroundColor: colors.paper,
+  },
+  chipOn: {
+    borderColor: colors.crimson,
+    backgroundColor: '#FFF1F2',
+  },
+  chipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.inkMuted,
+  },
+  chipTextOn: {
+    color: colors.crimson,
+  },
+  saveBtn: {
+    backgroundColor: colors.lacquer,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  saveText: {
+    color: colors.white,
+    fontWeight: '800',
+    fontSize: 12,
+  },
+});
