@@ -46,6 +46,8 @@ type Props = {
   peekNext: CalendarDay;
   peekPrev: CalendarDay;
   fonts?: Fonts;
+  /** Fill remaining space under the lacquer mount (home hero). */
+  fill?: boolean;
   onTornNext: () => void;
   onTornPrev: () => void;
   onTornToday: () => void;
@@ -64,6 +66,7 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
       peekNext,
       peekPrev,
       fonts,
+      fill,
       onTornNext,
       onTornPrev,
       onTornToday,
@@ -301,17 +304,17 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
     const peekForward = overridePeek ?? peekNext;
 
     return (
-      <View style={styles.wrap}>
+      <View style={[styles.wrap, fill && styles.wrapFill]}>
         <Animated.View style={[styles.peekLayer, nextPeekStyle]}>
-          <CalendarPaper day={peekForward} fonts={fonts} />
+          <CalendarPaper day={peekForward} fonts={fonts} fill={fill} />
         </Animated.View>
         <Animated.View style={[styles.peekLayer, prevPeekStyle]}>
-          <CalendarPaper day={peekPrev} fonts={fonts} />
+          <CalendarPaper day={peekPrev} fonts={fonts} fill={fill} />
         </Animated.View>
 
         <GestureDetector gesture={pan}>
-          <Animated.View style={[styles.front, frontStyle]}>
-            <CalendarPaper day={day} fonts={fonts} />
+          <Animated.View style={[styles.front, fill && styles.frontFill, frontStyle]}>
+            <CalendarPaper day={day} fonts={fonts} fill={fill} />
             {showHint ? (
               <Animated.View style={[styles.hint, hintStyle]}>
                 <Pressable onPress={dismissHint} hitSlop={8}>
@@ -332,6 +335,9 @@ const styles = StyleSheet.create({
   wrap: {
     position: 'relative',
   },
+  wrapFill: {
+    flex: 1,
+  },
   peekLayer: {
     ...StyleSheet.absoluteFill,
     zIndex: 0,
@@ -340,6 +346,9 @@ const styles = StyleSheet.create({
   front: {
     zIndex: 2,
     backgroundColor: colors.paper,
+  },
+  frontFill: {
+    flex: 1,
   },
   hint: {
     position: 'absolute',

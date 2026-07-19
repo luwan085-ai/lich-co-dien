@@ -14,13 +14,9 @@ type Fonts = {
 type Props = {
   day: CalendarDay;
   fonts?: Fonts;
+  /** Stretch to fill parent (home hero). */
+  fill?: boolean;
 };
-
-const STAMPS: { ch: string; rot: string }[] = [
-  { ch: '祿', rot: '-8deg' },
-  { ch: '壽', rot: '4deg' },
-  { ch: '安', rot: '-3deg' },
-];
 
 const QUALITY_COLOR: Record<CalendarDay['dayPathTone'], string> = {
   great: colors.crimson,
@@ -30,14 +26,17 @@ const QUALITY_COLOR: Record<CalendarDay['dayPathTone'], string> = {
   bad: '#5C2E2E',
 };
 
-export function CalendarPaper({ day, fonts }: Props) {
+/**
+ * Core paper card — premium minimal.
+ * Quote / Hoàng Đạo / footer stamps live below the fold or on Tử vi.
+ */
+export function CalendarPaper({ day, fonts, fill }: Props) {
   const display = fonts?.display;
-  const quote = fonts?.quote ?? display;
   const body = fonts?.body;
   const bodyMed = fonts?.bodyMedium ?? body;
 
   return (
-    <View style={styles.paper}>
+    <View style={[styles.paper, fill && styles.paperFill]}>
       <View style={styles.innerFrame} />
       <CornerOrnament position="tl" />
       <CornerOrnament position="tr" />
@@ -46,29 +45,20 @@ export function CalendarPaper({ day, fonts }: Props) {
       <PaperTexture />
 
       <View style={styles.topRow}>
-        <View>
-          <Text style={[styles.year, bodyMed ? { fontFamily: bodyMed } : null]}>
-            {day.solar.year}
-          </Text>
-          <Text style={[styles.canChiYear, bodyMed ? { fontFamily: bodyMed } : null]}>
-            {day.yearCanChiUpper}
-          </Text>
-          <Text style={[styles.solarMonth, body ? { fontFamily: body } : null]}>
-            {day.solarMonthLine}
-          </Text>
-        </View>
-
-        <View style={styles.sealStack}>
-          <View style={styles.sealOuter}>
-            <View style={styles.seal}>
-              <Text style={styles.sealText}>福</Text>
-              <Text style={styles.sealSub}>LỘC</Text>
-            </View>
-          </View>
-        </View>
+        <Text style={[styles.year, bodyMed ? { fontFamily: bodyMed } : null]}>
+          {day.solar.year}
+        </Text>
+        <Text
+          style={[styles.canChiYear, bodyMed ? { fontFamily: bodyMed } : null]}
+        >
+          {day.yearCanChiUpper}
+        </Text>
+        <Text style={[styles.solarMonth, body ? { fontFamily: body } : null]}>
+          {day.solarMonthLine}
+        </Text>
       </View>
 
-      <View style={styles.centerBlock}>
+      <View style={[styles.centerBlock, fill && styles.centerBlockFill]}>
         <Text style={[styles.lunarDay, display ? { fontFamily: display } : null]}>
           {day.lunar.day}
         </Text>
@@ -118,97 +108,22 @@ export function CalendarPaper({ day, fonts }: Props) {
         </View>
       </View>
 
-      <View style={styles.metaDivider}>
-        <View style={styles.metaDividerLine} />
-        <Text style={styles.metaDividerMark}>◈</Text>
-        <View style={styles.metaDividerLine} />
-      </View>
-
-      <View style={styles.metaRow}>
-        <View style={styles.metaCol}>
-          <Text style={[styles.metaRed, body ? { fontFamily: body } : null]}>
-            Năm {day.canChi.year}
-          </Text>
-          <Text style={[styles.metaRed, body ? { fontFamily: body } : null]}>
-            Tháng {day.canChi.month}
-          </Text>
-          <Text style={[styles.metaRed, body ? { fontFamily: body } : null]}>
-            Ngày {day.canChi.day}
-          </Text>
-          <Text style={[styles.metaRed, body ? { fontFamily: body } : null]}>
-            Giờ {day.canChi.hour}
-          </Text>
-          {day.metaLine ? (
-            <Text style={[styles.metaSub, body ? { fontFamily: body } : null]}>
-              {day.metaLine}
-            </Text>
-          ) : null}
-        </View>
-
-        <View style={styles.quoteCol}>
-          <Text style={styles.quoteMark}>「</Text>
-          <Text
-            style={[styles.quoteText, quote ? { fontFamily: quote } : null]}
-          >
-            {day.quote.text}
-          </Text>
-          <Text style={[styles.quoteAuthor, body ? { fontFamily: body } : null]}>
-            — {day.quote.author}
-          </Text>
-        </View>
-
-        <View style={styles.metaColRight}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              bodyMed ? { fontFamily: bodyMed } : null,
-            ]}
-          >
-            GIỜ HOÀNG ĐẠO
-          </Text>
-          {day.hoangHours.slice(0, 4).map((h) => (
-            <Text
-              key={h.branch}
-              style={[styles.hourLine, body ? { fontFamily: body } : null]}
-            >
-              {h.branch} · {h.time.replace(':00', 'h').replace('-', '–')}
-            </Text>
-          ))}
-          <Text
-            style={[
-              styles.sectionTitle,
-              styles.sectionGap,
-              bodyMed ? { fontFamily: bodyMed } : null,
-            ]}
-          >
-            THUẬN LỢI
-          </Text>
-          <Text style={[styles.favorText, body ? { fontFamily: body } : null]}>
-            {day.favorable}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <View style={styles.stamps}>
-          {STAMPS.map((s) => (
-            <View
-              key={s.ch}
-              style={[styles.stamp, { transform: [{ rotate: s.rot }] }]}
-            >
-              <Text style={styles.stampText}>{s.ch}</Text>
-            </View>
-          ))}
-        </View>
-        <Text
-          style={[styles.footerText, bodyMed ? { fontFamily: bodyMed } : null]}
-        >
-          TỨ QUÝ BÌNH AN
+      <View style={styles.canChiRow}>
+        <Text style={[styles.canChiItem, body ? { fontFamily: body } : null]}>
+          Năm {day.canChi.year}
         </Text>
-        <View style={styles.dots}>
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-        </View>
+        <Text style={styles.canChiDot}>·</Text>
+        <Text style={[styles.canChiItem, body ? { fontFamily: body } : null]}>
+          Tháng {day.canChi.month}
+        </Text>
+        <Text style={styles.canChiDot}>·</Text>
+        <Text style={[styles.canChiItem, body ? { fontFamily: body } : null]}>
+          Ngày {day.canChi.day}
+        </Text>
+        <Text style={styles.canChiDot}>·</Text>
+        <Text style={[styles.canChiItem, body ? { fontFamily: body } : null]}>
+          Giờ {day.canChi.hour}
+        </Text>
       </View>
     </View>
   );
@@ -220,24 +135,26 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     borderColor: colors.crimson,
     borderTopWidth: 0,
-    paddingHorizontal: 14,
-    paddingTop: 14,
-    paddingBottom: 12,
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 18,
     overflow: 'hidden',
+  },
+  paperFill: {
+    flex: 1,
+    justifyContent: 'space-between',
   },
   innerFrame: {
     ...StyleSheet.absoluteFill,
-    margin: 4,
+    margin: 5,
     borderWidth: 1,
     borderColor: colors.gold,
-    opacity: 0.55,
+    opacity: 0.45,
     zIndex: 1,
   },
   topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     zIndex: 2,
+    alignItems: 'flex-start',
   },
   year: {
     fontSize: 14,
@@ -246,62 +163,36 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   canChiYear: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.crimsonDeep,
-    marginTop: 2,
+    marginTop: 3,
     letterSpacing: 1.2,
     fontWeight: '700',
   },
   solarMonth: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.inkFaint,
-    marginTop: 3,
+    marginTop: 4,
     letterSpacing: 0.6,
-  },
-  sealStack: {
-    paddingTop: 2,
-  },
-  sealOuter: {
-    padding: 3,
-    borderWidth: 1,
-    borderColor: colors.gold,
-    backgroundColor: colors.goldSoft,
-  },
-  seal: {
-    width: 46,
-    height: 46,
-    backgroundColor: colors.sealField,
-    borderWidth: 1.5,
-    borderColor: colors.goldSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sealText: {
-    color: colors.goldSoft,
-    fontSize: 20,
-    fontWeight: '800',
-    lineHeight: 22,
-  },
-  sealSub: {
-    color: colors.gold,
-    fontSize: 7,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginTop: 1,
   },
   centerBlock: {
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 10,
     zIndex: 2,
   },
+  centerBlockFill: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    marginTop: 0,
+  },
   lunarDay: {
-    fontSize: 26,
+    fontSize: 28,
     color: colors.ink,
     fontWeight: '600',
   },
   weekdayWrap: {
-    marginTop: 6,
-    width: '82%',
+    marginTop: 8,
+    width: '78%',
     alignItems: 'center',
   },
   weekdayGold: {
@@ -312,26 +203,26 @@ const styles = StyleSheet.create({
   weekdayBar: {
     backgroundColor: colors.crimson,
     paddingHorizontal: 20,
-    paddingVertical: 7,
+    paddingVertical: 8,
     width: '100%',
     alignItems: 'center',
   },
   weekdayText: {
     color: colors.white,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
     letterSpacing: 1.4,
   },
   qualityLine: {
-    marginTop: 7,
-    fontSize: 11,
+    marginTop: 10,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.4,
     textAlign: 'center',
   },
   lunarMonth: {
-    marginTop: 6,
-    fontSize: 11,
+    marginTop: 8,
+    fontSize: 12,
     color: colors.inkMuted,
     letterSpacing: 0.9,
     fontWeight: '500',
@@ -339,158 +230,48 @@ const styles = StyleSheet.create({
   solarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
-    gap: 12,
+    marginTop: 4,
+    gap: 14,
   },
   solarDay: {
-    fontSize: 96,
-    lineHeight: 104,
+    fontSize: 108,
+    lineHeight: 116,
     color: colors.crimson,
     fontWeight: '700',
   },
   zhCol: {
-    paddingTop: 10,
+    paddingTop: 12,
     borderLeftWidth: 1,
     borderLeftColor: colors.gold,
-    paddingLeft: 8,
+    paddingLeft: 10,
   },
   zhChar: {
-    fontSize: 14,
+    fontSize: 15,
     color: colors.ink,
-    lineHeight: 19,
+    lineHeight: 20,
     fontWeight: '600',
   },
-  metaDivider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-    marginBottom: 2,
-    gap: 6,
+  canChiRow: {
     zIndex: 2,
-  },
-  metaDividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.crimson,
-    opacity: 0.35,
-  },
-  metaDividerMark: {
-    color: colors.goldDeep,
-    fontSize: 8,
-  },
-  metaRow: {
     flexDirection: 'row',
-    gap: 6,
-    zIndex: 2,
-  },
-  metaCol: {
-    flex: 1.05,
-  },
-  metaColRight: {
-    flex: 1.15,
-  },
-  quoteCol: {
-    flex: 1.25,
-    paddingHorizontal: 5,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: colors.gold,
-    opacity: 1,
-  },
-  quoteMark: {
-    color: colors.crimsonSoft,
-    fontSize: 14,
-    lineHeight: 14,
-  },
-  metaRed: {
-    fontSize: 10,
-    color: colors.crimsonDeep,
-    lineHeight: 14,
-    fontWeight: '600',
-  },
-  metaSub: {
-    marginTop: 6,
-    fontSize: 9,
-    fontStyle: 'italic',
-    color: colors.inkFaint,
-  },
-  quoteText: {
-    fontSize: 10,
-    lineHeight: 14,
-    color: colors.ink,
-    textAlign: 'center',
-  },
-  quoteAuthor: {
-    marginTop: 6,
-    fontSize: 8,
-    color: colors.inkFaint,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  sectionTitle: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: colors.crimson,
-    letterSpacing: 0.5,
-    marginBottom: 3,
-  },
-  sectionGap: {
-    marginTop: 6,
-  },
-  hourLine: {
-    fontSize: 8,
-    color: colors.ink,
-    lineHeight: 12,
-  },
-  favorText: {
-    fontSize: 8,
-    color: colors.inkMuted,
-    lineHeight: 12,
-  },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    paddingTop: 6,
-    zIndex: 2,
-  },
-  stamps: {
-    flexDirection: 'row',
-    gap: 5,
-  },
-  stamp: {
-    width: 22,
-    height: 22,
-    borderWidth: 1.5,
-    borderColor: colors.sealInk,
-    backgroundColor: 'rgba(196, 30, 58, 0.08)',
-    alignItems: 'center',
+    flexWrap: 'wrap',
     justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(196, 30, 58, 0.28)',
   },
-  stampText: {
+  canChiItem: {
     fontSize: 11,
-    color: colors.sealInk,
-    fontWeight: '700',
+    color: colors.crimsonDeep,
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
-  footerText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.crimson,
-    letterSpacing: 1.2,
-  },
-  dots: {
-    flexDirection: 'row',
-    gap: 6,
-    width: 54,
-    justifyContent: 'flex-end',
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: colors.crimson,
-    borderWidth: 1,
-    borderColor: colors.gold,
+  canChiDot: {
+    fontSize: 11,
+    color: colors.goldDeep,
+    opacity: 0.7,
   },
 });

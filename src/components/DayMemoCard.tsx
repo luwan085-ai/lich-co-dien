@@ -6,6 +6,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { CollapsibleStampPanel } from './CollapsibleStampPanel';
 import { loadMemo, saveMemo } from '../lib/localMemos';
 import { rescheduleGioIfEnabled } from '../lib/gioNotifications';
 import { colors } from '../theme/tokens';
@@ -54,14 +55,21 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
     void rescheduleGioIfEnabled();
   };
 
+  const summary = lunarLabel
+    ? `${lunarLabel} · chạm để mở`
+    : text.trim()
+      ? `${text.trim().slice(0, 36)}${text.trim().length > 36 ? '…' : ''} · chạm để mở`
+      : 'Ghi chú / đánh dấu giỗ · chạm để mở';
+
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Text style={[styles.title, fontFamily ? { fontFamily } : null]}>
-          GHI CHÚ / GIỖ LỄ
-        </Text>
-        {savedHint ? <Text style={styles.saved}>Đã lưu</Text> : null}
-      </View>
+    <CollapsibleStampPanel
+      panelId="memo"
+      title="GHI CHÚ / GIỖ LỄ"
+      sub="Nhập ghi chú ngày · đánh dấu giỗ theo âm"
+      summary={summary}
+      fontFamily={fontFamily}
+    >
+      {savedHint ? <Text style={styles.saved}>Đã lưu</Text> : null}
 
       <TextInput
         style={styles.input}
@@ -103,33 +111,17 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
           {lunarLabel} · nhắc theo âm lịch (bật trong Cá nhân)
         </Text>
       ) : null}
-    </View>
+    </CollapsibleStampPanel>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.crimson,
-    letterSpacing: 0.6,
-  },
   saved: {
     fontSize: 11,
     color: colors.inkFaint,
     fontWeight: '600',
+    textAlign: 'right',
+    marginBottom: 4,
   },
   input: {
     minHeight: 72,

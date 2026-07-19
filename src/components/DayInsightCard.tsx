@@ -25,6 +25,17 @@ export function DayInsightCard({ day, fontFamily, compact = false }: Props) {
 
   return (
     <View style={[styles.card, compact && styles.cardCompact]}>
+      <View style={styles.quoteBlock}>
+        <Text style={styles.quoteMark}>「</Text>
+        <Text
+          style={[styles.quoteText, fontFamily ? { fontFamily } : null]}
+          numberOfLines={4}
+        >
+          {day.quote.text}
+        </Text>
+        <Text style={styles.quoteAuthor}>— {day.quote.author}</Text>
+      </View>
+
       {!compact ? (
         <View style={styles.top}>
           <View style={[styles.badge, { borderColor: tone }]}>
@@ -96,6 +107,30 @@ const styles = StyleSheet.create({
   cardCompact: {
     paddingVertical: 10,
     paddingHorizontal: 12,
+  },
+  quoteBlock: {
+    marginBottom: 10,
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  quoteMark: {
+    color: colors.crimsonSoft,
+    fontSize: 16,
+    lineHeight: 16,
+    marginBottom: 2,
+  },
+  quoteText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.ink,
+    fontStyle: 'italic',
+  },
+  quoteAuthor: {
+    marginTop: 6,
+    fontSize: 11,
+    color: colors.inkFaint,
+    fontStyle: 'italic',
   },
   top: {
     flexDirection: 'row',

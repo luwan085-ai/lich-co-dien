@@ -6,7 +6,7 @@ import { colors } from '../theme/tokens';
 
 const KEY = 'lich_stamp_panels_v2';
 
-type PanelId = 'mood' | 'praise' | 'commitment' | 'glance';
+type PanelId = 'mood' | 'praise' | 'commitment' | 'glance' | 'memo';
 
 type PanelState = Record<PanelId, boolean>;
 
@@ -15,6 +15,7 @@ const DEFAULT: PanelState = {
   praise: false,
   commitment: false,
   glance: false,
+  memo: false,
 };
 
 async function loadPanels(): Promise<PanelState> {
@@ -57,7 +58,7 @@ export function CollapsibleStampPanel({
     void (async () => {
       const panels = await loadPanels();
       if (!alive) return;
-      setOpen(panels[panelId] ?? true);
+      setOpen(panels[panelId] ?? DEFAULT[panelId] ?? false);
       setReady(true);
     })();
     return () => {

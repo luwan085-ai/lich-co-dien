@@ -1,5 +1,12 @@
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { CalendarMount } from '../components/CalendarMount';
 import { DayCommitmentCard } from '../components/DayCommitmentCard';
 import { DayInsightCard } from '../components/DayInsightCard';
@@ -41,6 +48,7 @@ export function HomeScreen({ fonts, selected, onChangeSelected }: Props) {
   const tearRef = useRef<TearablePaperHandle>(null);
   const shareRef = useRef<View>(null);
   const [wishText, setWishText] = useState('');
+  const [viewportH, setViewportH] = useState(0);
   const onWishTextChange = useCallback((t: string) => {
     setWishText(t);
   }, []);
@@ -87,156 +95,189 @@ export function HomeScreen({ fonts, selected, onChangeSelected }: Props) {
   };
 
   return (
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
+    <View
+      style={styles.root}
+      onLayout={(e) => {
+        const h = Math.round(e.nativeEvent.layout.height);
+        if (h > 0 && h !== viewportH) setViewportH(h);
+      }}
     >
-      <View
-        style={[
-          styles.calendarCard,
-          stampSkin === 'gold' && styles.calendarGold,
-        ]}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        decelerationRate="fast"
       >
-        {stampSkin === 'tape' ? (
-          <>
-            <View style={[styles.tape, styles.tapeTL]} />
-            <View style={[styles.tape, styles.tapeTR]} />
-          </>
-        ) : null}
-        <CalendarMount wishText={wishText} fontFamily={fonts?.bodySemi}>
-          <DayCommitmentCard
-            dateKey={selectedKey}
-            solar={selected}
-            isToday={isToday}
-            fontFamily={fonts?.bodySemi}
-            embedded
-            onTextChange={onWishTextChange}
-            onStamped={setPraiseStamp}
-          />
-        </CalendarMount>
-        <TearablePaper
-          ref={tearRef}
-          day={currentDay}
-          todayDay={todayDay}
-          peekNext={peekDay('next')}
-          peekPrev={peekDay('prev')}
-          fonts={paperFonts}
-          onTornNext={goNext}
-          onTornPrev={goPrev}
-          onTornToday={goToday}
-        />
-        {moodStamped ? (
+        {/* First screen = date card only; rest below the fold */}
+        <View
+          style={[
+            styles.hero,
+            viewportH > 0 ? { height: viewportH } : styles.heroFallback,
+          ]}
+        >
           <View
-            style={[styles.pageStampMood, { borderColor: moodStamped.color }]}
-          >
-            <Text
-              style={[styles.pageStampChar, { color: moodStamped.color }]}
-            >
-              {moodStamped.char}
-            </Text>
-          </View>
-        ) : null}
-        {praiseStamped ? (
-          <View style={styles.pageStampPraiseWrap}>
-            <VnTeacherStamp
-              praiseId={praiseStamped.id}
-              size="md"
-              inkSeed={pageRecord?.praiseInkSeed ?? 42}
-              rotate={praiseStamped.tilt}
-              fontFamily={fonts?.stamp ?? fonts?.bodySemi}
-              face={flowerFace}
-              inkColor={inkColor}
-            />
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.toolRow}>
-        {!isToday ? (
-          <Pressable onPress={() => tearRef.current?.tearToToday()}>
-            <Text
-              style={[
-                styles.toolPrimary,
-                fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null,
-              ]}
-            >
-              Về hôm nay
-            </Text>
-          </Pressable>
-        ) : (
-          <View />
-        )}
-        <Pressable onPress={() => void onShare()}>
-          <Text
             style={[
-              styles.toolSecondary,
-              fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null,
+              styles.calendarCard,
+              stampSkin === 'gold' && styles.calendarGold,
             ]}
           >
-            Chia sẻ
-          </Text>
-        </Pressable>
-      </View>
+            {stampSkin === 'tape' ? (
+              <>
+                <View style={[styles.tape, styles.tapeTL]} />
+                <View style={[styles.tape, styles.tapeTR]} />
+              </>
+            ) : null}
+            <CalendarMount wishText={wishText} fontFamily={fonts?.bodySemi}>
+              <DayCommitmentCard
+                dateKey={selectedKey}
+                solar={selected}
+                isToday={isToday}
+                fontFamily={fonts?.bodySemi}
+                embedded
+                onTextChange={onWishTextChange}
+                onStamped={setPraiseStamp}
+              />
+            </CalendarMount>
+            <TearablePaper
+              ref={tearRef}
+              fill
+              day={currentDay}
+              todayDay={todayDay}
+              peekNext={peekDay('next')}
+              peekPrev={peekDay('prev')}
+              fonts={paperFonts}
+              onTornNext={goNext}
+              onTornPrev={goPrev}
+              onTornToday={goToday}
+            />
+            {moodStamped ? (
+              <View
+                style={[
+                  styles.pageStampMood,
+                  { borderColor: moodStamped.color },
+                ]}
+              >
+                <Text
+                  style={[styles.pageStampChar, { color: moodStamped.color }]}
+                >
+                  {moodStamped.char}
+                </Text>
+              </View>
+            ) : null}
+            {praiseStamped ? (
+              <View style={styles.pageStampPraiseWrap}>
+                <VnTeacherStamp
+                  praiseId={praiseStamped.id}
+                  size="md"
+                  inkSeed={pageRecord?.praiseInkSeed ?? 42}
+                  rotate={praiseStamped.tilt}
+                  fontFamily={fonts?.stamp ?? fonts?.bodySemi}
+                  face={flowerFace}
+                  inkColor={inkColor}
+                />
+              </View>
+            ) : null}
+          </View>
 
-      <View style={styles.shareCapture}>
-        <ShareDayCard
-          ref={shareRef}
-          day={currentDay}
-          face={flowerFace}
-          praiseId={pageRecord?.praiseStamp}
-          skin={stampSkin}
-          fontFamily={fonts?.stamp ?? fonts?.bodySemi}
-          displayFont={fonts?.display}
-        />
-      </View>
+          <View style={styles.toolRow}>
+            {!isToday ? (
+              <Pressable onPress={() => tearRef.current?.tearToToday()}>
+                <Text
+                  style={[
+                    styles.toolPrimary,
+                    fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null,
+                  ]}
+                >
+                  Về hôm nay
+                </Text>
+              </Pressable>
+            ) : (
+              <Text style={styles.scrollCue}>Vuốt lên · ghi chú & tiện ích</Text>
+            )}
+            <Pressable onPress={() => void onShare()}>
+              <Text
+                style={[
+                  styles.toolSecondary,
+                  fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null,
+                ]}
+              >
+                Chia sẻ
+              </Text>
+            </Pressable>
+          </View>
+        </View>
 
-      <View style={styles.block}>
-        <DayInsightCard day={currentDay} fontFamily={fonts?.bodySemi} compact />
-      </View>
+        <View style={styles.shareCapture}>
+          <ShareDayCard
+            ref={shareRef}
+            day={currentDay}
+            face={flowerFace}
+            praiseId={pageRecord?.praiseStamp}
+            skin={stampSkin}
+            fontFamily={fonts?.stamp ?? fonts?.bodySemi}
+            displayFont={fonts?.display}
+          />
+        </View>
 
-      <View style={styles.block}>
-        <DayMemoCard dateKey={selectedKey} fontFamily={fonts?.bodySemi} />
-      </View>
+        <View style={styles.below}>
+          <View style={styles.block}>
+            <DayInsightCard
+              day={currentDay}
+              fontFamily={fonts?.bodySemi}
+              compact
+            />
+          </View>
 
-      <View style={styles.block}>
-        <MoodStampPicker
-          selected={pageRecord?.moodStamp}
-          fontFamily={fonts?.bodySemi}
-          onPick={setMoodStamp}
-        />
-      </View>
+          <View style={styles.block}>
+            <DayMemoCard dateKey={selectedKey} fontFamily={fonts?.bodySemi} />
+          </View>
 
-      <View style={styles.block}>
-        <PraiseStampPicker
-          selected={pageRecord?.praiseStamp}
-          inkSeed={pageRecord?.praiseInkSeed}
-          fontFamily={fonts?.bodySemi}
-          stampFont={fonts?.stamp}
-          face={flowerFace}
-          inkColor={inkColor}
-          onPick={setPraiseStamp}
-        />
-      </View>
+          <View style={styles.block}>
+            <MoodStampPicker
+              selected={pageRecord?.moodStamp}
+              fontFamily={fonts?.bodySemi}
+              onPick={setMoodStamp}
+            />
+          </View>
 
-      <View style={styles.block}>
-        <WidgetTray
-          fontFamily={fonts?.bodySemi}
-          calendarDay={selected}
-        />
-      </View>
-    </ScrollView>
+          <View style={styles.block}>
+            <PraiseStampPicker
+              selected={pageRecord?.praiseStamp}
+              inkSeed={pageRecord?.praiseInkSeed}
+              fontFamily={fonts?.bodySemi}
+              stampFont={fonts?.stamp}
+              face={flowerFace}
+              inkColor={inkColor}
+              onPick={setPraiseStamp}
+            />
+          </View>
+
+          <View style={styles.block}>
+            <WidgetTray fontFamily={fonts?.bodySemi} calendarDay={selected} />
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: spacing.page,
-    paddingTop: 8,
-    paddingBottom: 20,
+    paddingTop: 0,
+    paddingBottom: 28,
+  },
+  hero: {
+    paddingTop: 6,
+    paddingBottom: 2,
+  },
+  heroFallback: {
+    minHeight: 560,
   },
   calendarCard: {
+    flex: 1,
     borderRadius: 1,
     overflow: 'hidden',
     position: 'relative',
@@ -286,7 +327,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 2,
-    minHeight: 20,
+    minHeight: 22,
+    flexShrink: 0,
   },
   toolPrimary: {
     fontSize: 12,
@@ -300,11 +342,21 @@ const styles = StyleSheet.create({
     color: colors.inkFaint,
     letterSpacing: 0.2,
   },
+  scrollCue: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.inkFaint,
+    letterSpacing: 0.2,
+  },
   shareCapture: {
     position: 'absolute',
     left: 0,
     top: -10000,
     pointerEvents: 'none',
+  },
+  below: {
+    marginTop: 10,
+    paddingTop: 4,
   },
   block: {
     marginTop: 8,
