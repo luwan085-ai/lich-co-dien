@@ -145,6 +145,7 @@ function AppShell() {
             fonts={fonts}
             selected={selected}
             onChangeSelected={setSelected}
+            onOpenGioList={() => setShowGioList(true)}
           />
         ) : null}
         {!showSteps && !showGioList && tab === 'month' ? (
@@ -167,6 +168,7 @@ function AppShell() {
         {!showSteps && !showGioList && tab === 'profile' ? (
           <ProfileScreen
             fontFamily={fonts?.bodySemi}
+            stampFont={fonts?.stamp}
             onOpenSteps={() => setShowSteps(true)}
             onOpenGioList={() => setShowGioList(true)}
           />

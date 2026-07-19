@@ -196,19 +196,30 @@ function MarketWidget({
   if (!expanded) {
     const goldSell = board?.gold?.sell;
     const ron = board?.petrol[0]?.price;
-    const offline = board?.isFallback ? ' · offline' : '';
-    const summary =
-      goldSell && ron
-        ? `SJC ${formatVnd(goldSell)} · RON95 ${formatVnd(ron)}${offline}`
-        : 'GIÁ VÀNG · XĂNG · chạm để mở';
+    const hasPrices = Boolean(goldSell && ron);
     return (
       <Pressable style={styles.strip} onPress={onToggleExpand}>
         <View style={[styles.stripIcon, styles.stripIconGold]}>
           <Ionicons name="trending-up" size={14} color={colors.white} />
         </View>
-        <Text style={[styles.stripText, fontFamily ? { fontFamily } : null]}>
-          {summary}
-        </Text>
+        <View style={styles.stripBody}>
+          <Text style={[styles.stripTitle, fontFamily ? { fontFamily } : null]}>
+            Giá vàng · Xăng dầu
+          </Text>
+          <Text
+            style={[styles.stripSub, fontFamily ? { fontFamily } : null]}
+            numberOfLines={1}
+          >
+            {hasPrices
+              ? `SJC ${formatVnd(goldSell!)} · RON95 ${formatVnd(ron!)}`
+              : 'Chạm để xem giá hôm nay'}
+          </Text>
+        </View>
+        {board?.isFallback ? (
+          <View style={styles.offlineBadge}>
+            <Text style={styles.offlineBadgeText}>offline</Text>
+          </View>
+        ) : null}
         {pinned ? (
           <Ionicons name="pin" size={14} color={colors.goldDeep} />
         ) : (
@@ -583,6 +594,33 @@ const styles = StyleSheet.create({
   },
   stripIconGold: {
     backgroundColor: colors.goldDeep,
+  },
+  stripBody: {
+    flex: 1,
+    minWidth: 0,
+  },
+  stripTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.ink,
+  },
+  stripSub: {
+    marginTop: 2,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.inkMuted,
+  },
+  offlineBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
+    backgroundColor: colors.paperDeep,
+  },
+  offlineBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.inkFaint,
+    textTransform: 'lowercase',
   },
   stripText: {
     flex: 1,

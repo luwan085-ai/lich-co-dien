@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { CalendarMount } from '../components/CalendarMount';
 import { DayCommitmentCard } from '../components/DayCommitmentCard';
-import { DayInsightCard } from '../components/DayInsightCard';
 import { DayMemoCard } from '../components/DayMemoCard';
+import { DayPulseCompact } from '../components/DayPulseCompact';
 import { MoodStampPicker } from '../components/MoodStampPicker';
-import { PraiseStampPicker } from '../components/PraiseStampPicker';
 import { ShareDayCard } from '../components/ShareDayCard';
+import { UpcomingLunarCard } from '../components/UpcomingLunarCard';
 import {
   TearablePaper,
   type TearablePaperHandle,
@@ -29,6 +29,8 @@ import { usePremium } from '../monetization/premium';
 import { colors, spacing } from '../theme/tokens';
 import { MOOD_STAMPS, PRAISE_STAMPS } from '../types/mood';
 
+const TOOL_ROW_H = 30;
+
 type Fonts = {
   display?: string;
   quote?: string;
@@ -42,13 +44,20 @@ type Props = {
   fonts?: Fonts;
   selected: SolarDate;
   onChangeSelected: (d: SolarDate) => void;
+  onOpenGioList?: () => void;
 };
 
-export function HomeScreen({ fonts, selected, onChangeSelected }: Props) {
+export function HomeScreen({
+  fonts,
+  selected,
+  onChangeSelected,
+  onOpenGioList,
+}: Props) {
   const tearRef = useRef<TearablePaperHandle>(null);
   const shareRef = useRef<View>(null);
   const [wishText, setWishText] = useState('');
   const [viewportH, setViewportH] = useState(0);
+  const [gioTick, setGioTick] = useState(0);
   const onWishTextChange = useCallback((t: string) => {
     setWishText(t);
   }, []);
@@ -94,6 +103,29 @@ export function HomeScreen({ fonts, selected, onChangeSelected }: Props) {
     }
   };
 
+  const paperWings = {
+    leftWing: praiseStamped ? (
+      <VnTeacherStamp
+        praiseId={praiseStamped.id}
+        size="sm"
+        inkSeed={pageRecord?.praiseInkSeed ?? 42}
+        rotate={praiseStamped.tilt}
+        fontFamily={fonts?.stamp ?? fonts?.bodySemi}
+        face={flowerFace}
+        inkColor={inkColor}
+      />
+    ) : null,
+    rightWing: moodStamped ? (
+      <View
+        style={[styles.pageStampMood, { borderColor: moodStamped.color }]}
+      >
+        <Text style={[styles.pageStampChar, { color: moodStamped.color }]}>
+          {moodStamped.char}
+        </Text>
+      </View>
+    ) : null,
+  };
+
   return (
     <View
       style={styles.root}
@@ -108,11 +140,13 @@ export function HomeScreen({ fonts, selected, onChangeSelected }: Props) {
         showsVerticalScrollIndicator={false}
         decelerationRate="fast"
       >
-        {/* First screen = date card only; rest below the fold */}
+        {/* First screen = full calendar card + tool row */}
         <View
           style={[
             styles.hero,
-            viewportH > 0 ? { height: viewportH } : styles.heroFallback,
+            viewportH > 0
+              ? { height: viewportH }
+              : styles.heroFallback,
           ]}
         >
           <View
@@ -146,37 +180,12 @@ export function HomeScreen({ fonts, selected, onChangeSelected }: Props) {
               peekNext={peekDay('next')}
               peekPrev={peekDay('prev')}
               fonts={paperFonts}
+              leftWing={paperWings.leftWing}
+              rightWing={paperWings.rightWing}
               onTornNext={goNext}
               onTornPrev={goPrev}
               onTornToday={goToday}
             />
-            {moodStamped ? (
-              <View
-                style={[
-                  styles.pageStampMood,
-                  { borderColor: moodStamped.color },
-                ]}
-              >
-                <Text
-                  style={[styles.pageStampChar, { color: moodStamped.color }]}
-                >
-                  {moodStamped.char}
-                </Text>
-              </View>
-            ) : null}
-            {praiseStamped ? (
-              <View style={styles.pageStampPraiseWrap}>
-                <VnTeacherStamp
-                  praiseId={praiseStamped.id}
-                  size="md"
-                  inkSeed={pageRecord?.praiseInkSeed ?? 42}
-                  rotate={praiseStamped.tilt}
-                  fontFamily={fonts?.stamp ?? fonts?.bodySemi}
-                  face={flowerFace}
-                  inkColor={inkColor}
-                />
-              </View>
-            ) : null}
           </View>
 
           <View style={styles.toolRow}>
@@ -192,7 +201,7 @@ export function HomeScreen({ fonts, selected, onChangeSelected }: Props) {
                 </Text>
               </Pressable>
             ) : (
-              <Text style={styles.scrollCue}>Vuốt lên · ghi chú & tiện ích</Text>
+              <Text style={styles.scrollCue}>Vuốt lên · sắp tới & giỗ</Text>
             )}
             <Pressable onPress={() => void onShare()}>
               <Text
@@ -221,15 +230,25 @@ export function HomeScreen({ fonts, selected, onChangeSelected }: Props) {
 
         <View style={styles.below}>
           <View style={styles.block}>
-            <DayInsightCard
-              day={currentDay}
+            <UpcomingLunarCard
+              refreshKey={gioTick}
               fontFamily={fonts?.bodySemi}
-              compact
+              onSelectDay={onChangeSelected}
+              onOpenList={onOpenGioList}
             />
           </View>
 
           <View style={styles.block}>
-            <DayMemoCard dateKey={selectedKey} fontFamily={fonts?.bodySemi} />
+            <DayPulseCompact day={currentDay} fontFamily={fonts?.bodySemi} />
+          </View>
+
+          <View style={styles.block}>
+            <DayMemoCard
+              dateKey={selectedKey}
+              fontFamily={fonts?.bodySemi}
+              gioRefreshKey={gioTick}
+              onGioChanged={() => setGioTick((n) => n + 1)}
+            />
           </View>
 
           <View style={styles.block}>
@@ -241,18 +260,9 @@ export function HomeScreen({ fonts, selected, onChangeSelected }: Props) {
           </View>
 
           <View style={styles.block}>
-            <PraiseStampPicker
-              selected={pageRecord?.praiseStamp}
-              inkSeed={pageRecord?.praiseInkSeed}
-              fontFamily={fonts?.bodySemi}
-              stampFont={fonts?.stamp}
-              face={flowerFace}
-              inkColor={inkColor}
-              onPick={setPraiseStamp}
-            />
-          </View>
-
-          <View style={styles.block}>
+            <Text style={[styles.utilKicker, fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null]}>
+              TIỆN ÍCH HÀNG NGÀY
+            </Text>
             <WidgetTray fontFamily={fonts?.bodySemi} calendarDay={selected} />
           </View>
         </View>
@@ -270,17 +280,19 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   hero: {
-    paddingTop: 6,
-    paddingBottom: 2,
+    flexDirection: 'column',
+    paddingTop: 2,
+    paddingBottom: 0,
   },
   heroFallback: {
-    minHeight: 560,
+    minHeight: 540,
   },
   calendarCard: {
     flex: 1,
     borderRadius: 1,
     overflow: 'hidden',
     position: 'relative',
+    minHeight: 0,
   },
   calendarGold: {
     borderWidth: 2,
@@ -296,38 +308,25 @@ const styles = StyleSheet.create({
   tapeTL: { top: 8, left: -10, transform: [{ rotate: '-14deg' }] },
   tapeTR: { top: 12, right: -12, transform: [{ rotate: '12deg' }] },
   pageStampMood: {
-    position: 'absolute',
-    right: 22,
-    bottom: 58,
-    width: 52,
-    height: 52,
+    width: 44,
+    height: 44,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(251,246,236,0.75)',
-    transform: [{ rotate: '-12deg' }],
-    zIndex: 5,
-    pointerEvents: 'none',
-  },
-  pageStampPraiseWrap: {
-    position: 'absolute',
-    left: 10,
-    bottom: 48,
-    zIndex: 5,
-    pointerEvents: 'none',
-    maxWidth: '70%',
+    transform: [{ rotate: '-10deg' }],
   },
   pageStampChar: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '800',
   },
   toolRow: {
-    marginTop: 6,
+    marginTop: 4,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 2,
-    minHeight: 22,
+    minHeight: TOOL_ROW_H,
     flexShrink: 0,
   },
   toolPrimary: {
@@ -360,5 +359,13 @@ const styles = StyleSheet.create({
   },
   block: {
     marginTop: 8,
+  },
+  utilKicker: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.7,
+    color: colors.inkFaint,
+    marginBottom: 6,
+    marginLeft: 2,
   },
 });

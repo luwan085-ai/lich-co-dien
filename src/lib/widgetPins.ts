@@ -11,7 +11,7 @@ export type WidgetPinState = {
 };
 
 const DEFAULT: WidgetPinState = {
-  expanded: { news: true, markets: true, steps: false, horoscope: false },
+  expanded: { news: false, markets: false, steps: false, horoscope: false },
   pinned: { news: false, markets: false, steps: false, horoscope: false },
 };
 

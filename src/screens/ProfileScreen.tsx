@@ -11,6 +11,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { ProfilePraiseSection } from '../components/ProfilePraiseSection';
 import { storeConfig } from '../config/store';
 import {
   loadGioNotifEnabled,
@@ -35,6 +36,7 @@ import { colors, spacing } from '../theme/tokens';
 
 type Props = {
   fontFamily?: string;
+  stampFont?: string;
   onOpenSteps: () => void;
   onOpenGioList: () => void;
 };
@@ -56,7 +58,12 @@ Không thu thập hồ sơ cá nhân để bán. Cặp số may mắn chỉ mang
 
 Host bản đầy đủ: docs/PRIVACY.md → dán URL vào EXPO_PUBLIC_PRIVACY_URL trước khi nộp store.`;
 
-export function ProfileScreen({ fontFamily, onOpenSteps, onOpenGioList }: Props) {
+export function ProfileScreen({
+  fontFamily,
+  stampFont,
+  onOpenSteps,
+  onOpenGioList,
+}: Props) {
   const {
     ready,
     isPremium,
@@ -284,6 +291,14 @@ export function ProfileScreen({ fontFamily, onOpenSteps, onOpenGioList }: Props)
             );
           })}
         </View>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Mộc khen ngợi</Text>
+        <Text style={styles.line}>
+          Đóng dấu khen trên tờ lịch hôm nay — ghi lại ngày làm tốt của bạn.
+        </Text>
+        <ProfilePraiseSection fontFamily={fontFamily} stampFont={stampFont} />
       </View>
 
       <View style={styles.card}>

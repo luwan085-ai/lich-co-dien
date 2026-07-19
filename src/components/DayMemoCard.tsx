@@ -13,20 +13,49 @@ import {
   formatSolarShort,
   nextOccurrence,
 } from '../lib/gioSchedule';
+import { nearestPersonalLunarEvent } from '../lib/lunarUpcoming';
 import { loadMemo, saveMemo } from '../lib/localMemos';
 import { colors } from '../theme/tokens';
 
 type Props = {
   dateKey: string;
   fontFamily?: string;
+  onGioChanged?: () => void;
+  gioRefreshKey?: number;
 };
 
-export function DayMemoCard({ dateKey, fontFamily }: Props) {
+export function DayMemoCard({
+  dateKey,
+  fontFamily,
+  onGioChanged,
+  gioRefreshKey = 0,
+}: Props) {
   const [text, setText] = useState('');
   const [isAnniversary, setIsAnniversary] = useState(false);
   const [lunarLabel, setLunarLabel] = useState<string | null>(null);
   const [nextLine, setNextLine] = useState<string | null>(null);
+  const [gioPreview, setGioPreview] = useState<string | null>(null);
   const [savedHint, setSavedHint] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const nearest = await nearestPersonalLunarEvent();
+      if (!alive) return;
+      if (nearest) {
+        const prefix =
+          nearest.kind === 'birthday' ? 'Sinh nhật âm' : 'Sắp giỗ';
+        setGioPreview(
+          `${prefix}: ${nearest.label} · ${dDayLabel(nearest.daysUntil).toLowerCase()}`,
+        );
+      } else {
+        setGioPreview(null);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [gioRefreshKey]);
 
   useEffect(() => {
     let alive = true;
@@ -73,19 +102,24 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
     setSavedHint(true);
     setTimeout(() => setSavedHint(false), 1200);
     void rescheduleGioIfEnabled();
+    if (saved.isAnniversary) onGioChanged?.();
   };
 
   const summary = lunarLabel
-    ? `${lunarLabel} · chạm để mở`
-    : text.trim()
-      ? `${text.trim().slice(0, 36)}${text.trim().length > 36 ? '…' : ''} · chạm để mở`
-      : 'Ghi chú / đánh dấu giỗ · chạm để mở';
+    ? nextLine
+      ? `${lunarLabel} · ${nextLine.replace('Lần tới: ', '')} · chạm để mở`
+      : `${lunarLabel} · chạm để mở`
+    : gioPreview
+      ? `${gioPreview} · chạm để mở`
+      : text.trim()
+        ? `${text.trim().slice(0, 36)}${text.trim().length > 36 ? '…' : ''} · chạm để mở`
+        : 'Ghi chú / đánh dấu giỗ · chạm để mở';
 
   return (
     <CollapsibleStampPanel
       panelId="memo"
       title="GHI CHÚ / GIỖ LỄ"
-      sub="Nhập ghi chú ngày · đánh dấu giỗ theo âm"
+      sub="Ghi chú ngày · giỗ / sinh nhật âm (ghi “sinh nhật …”)"
       summary={summary}
       fontFamily={fontFamily}
     >

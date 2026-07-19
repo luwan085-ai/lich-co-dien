@@ -4,6 +4,7 @@ import {
   useEffect,
   useImperativeHandle,
   useState,
+  type ReactNode,
 } from 'react';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -48,6 +49,8 @@ type Props = {
   fonts?: Fonts;
   /** Fill remaining space under the lacquer mount (home hero). */
   fill?: boolean;
+  leftWing?: ReactNode;
+  rightWing?: ReactNode;
   onTornNext: () => void;
   onTornPrev: () => void;
   onTornToday: () => void;
@@ -67,6 +70,8 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
       peekPrev,
       fonts,
       fill,
+      leftWing,
+      rightWing,
       onTornNext,
       onTornPrev,
       onTornToday,
@@ -306,15 +311,22 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
     return (
       <View style={[styles.wrap, fill && styles.wrapFill]}>
         <Animated.View style={[styles.peekLayer, nextPeekStyle]}>
-          <CalendarPaper day={peekForward} fonts={fonts} fill={fill} />
+          <CalendarPaper day={peekForward} fonts={fonts} fill={fill} compact={fill} />
         </Animated.View>
         <Animated.View style={[styles.peekLayer, prevPeekStyle]}>
-          <CalendarPaper day={peekPrev} fonts={fonts} fill={fill} />
+          <CalendarPaper day={peekPrev} fonts={fonts} fill={fill} compact={fill} />
         </Animated.View>
 
         <GestureDetector gesture={pan}>
           <Animated.View style={[styles.front, fill && styles.frontFill, frontStyle]}>
-            <CalendarPaper day={day} fonts={fonts} fill={fill} />
+            <CalendarPaper
+              day={day}
+              fonts={fonts}
+              fill={fill}
+              compact={fill}
+              leftWing={leftWing}
+              rightWing={rightWing}
+            />
             {showHint ? (
               <Animated.View style={[styles.hint, hintStyle]}>
                 <Pressable onPress={dismissHint} hitSlop={8}>
