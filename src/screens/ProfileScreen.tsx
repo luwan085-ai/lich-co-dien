@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -9,6 +11,11 @@ import {
   Text,
   View,
 } from 'react-native';
+import { storeConfig } from '../config/store';
+import {
+  loadGioNotifEnabled,
+  toggleGioNotifications,
+} from '../lib/gioNotifications';
 import {
   loadRamNotifEnabled,
   toggleRamNotifications,
@@ -30,6 +37,17 @@ const SKINS: { id: StampSkin; label: string; premium?: boolean }[] = [
   { id: 'tape', label: 'Băng keo dán', premium: true },
 ];
 
+const PRIVACY_BODY = `Lịch Cổ Điển ưu tiên lưu cục bộ trên máy bạn.
+
+• Ghi chú, giỗ âm lịch, cam kết / dấu đóng — lưu trên thiết bị
+• Nhắc Rằm / Mùng Một / Giỗ — lịch thông báo cục bộ
+• Giá vàng / xăng / tin — chỉ khi có mạng (có bản offline)
+• Quảng cáo AdMob & mua Premium (RevenueCat) — khi bạn gắn khóa production
+
+Không thu thập hồ sơ cá nhân để bán. Số may / Vietlott chỉ mang tính giải trí; dưới 18 tuổi không tham gia xổ số.
+
+Host bản đầy đủ: docs/PRIVACY.md → dán URL vào EXPO_PUBLIC_PRIVACY_URL trước khi nộp store.`;
+
 export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
   const {
     ready,
@@ -45,9 +63,13 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
   const [busy, setBusy] = useState(false);
   const [ramOn, setRamOn] = useState(false);
   const [ramBusy, setRamBusy] = useState(false);
+  const [gioOn, setGioOn] = useState(false);
+  const [gioBusy, setGioBusy] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   useEffect(() => {
     void loadRamNotifEnabled().then(setRamOn);
+    void loadGioNotifEnabled().then(setGioOn);
   }, []);
 
   const buy = async () => {
@@ -85,13 +107,52 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
         Alert.alert(
           'Đã bật nhắc',
           n > 0
-            ? `Đã lên lịch ${n} buổi sáng Rằm / Mùng Một (7:30).`
+            ? `Đã lên lịch ${n} buổi sáng Rằm / Mùng Một (7:30 giờ VN).`
             : 'Đã bật nhưng chưa có ngày sắp tới trong 60 ngày (hiếm).',
         );
       }
     } finally {
       setRamBusy(false);
     }
+  };
+
+  const toggleGio = async () => {
+    if (Platform.OS === 'web') {
+      Alert.alert(
+        'Chỉ trên máy thật',
+        'Nhắc giỗ âm lịch cần bản iOS hoặc Android.',
+      );
+      return;
+    }
+    setGioBusy(true);
+    try {
+      const next = !gioOn;
+      const n = await toggleGioNotifications(next);
+      setGioOn(next);
+      if (next) {
+        Alert.alert(
+          'Đã bật nhắc giỗ',
+          n > 0
+            ? `Đã lên lịch ${n} buổi sáng giỗ (7:30 giờ VN · theo âm lịch).`
+            : 'Chưa có ngày đánh dấu giỗ. Vào Hôm nay → Ghi chú / Giỗ lễ để đánh dấu.',
+        );
+      }
+    } finally {
+      setGioBusy(false);
+    }
+  };
+
+  const openPrivacy = async () => {
+    const url = storeConfig.privacyPolicyUrl.trim();
+    if (url) {
+      try {
+        await Linking.openURL(url);
+        return;
+      } catch {
+        // fall through to in-app
+      }
+    }
+    setPrivacyOpen(true);
   };
 
   const pickSkin = async (skin: StampSkin) => {
@@ -114,7 +175,7 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
       <Text style={[styles.kicker, fontFamily ? { fontFamily } : null]}>
         CÁ NHÂN
       </Text>
-      <Text style={styles.title}>Lịch Cổ Điển</Text>
+      <Text style={styles.title}>{storeConfig.displayName}</Text>
       <Text style={styles.body}>
         Bản local · Premium bỏ quảng cáo, giữ widget đã ghim, mực vàng & băng
         keo.
@@ -193,7 +254,8 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Nhắc Rằm / Mùng Một</Text>
         <Text style={styles.line}>
-          Sáng 7:30 mỗi ngày Rằm (15) và Mùng Một — nhớ thắp hương & lời hứa.
+          Sáng 7:30 (giờ VN) mỗi ngày Rằm (15) và Mùng Một — nhớ thắp hương &
+          lời hứa.
         </Text>
         <Pressable
           style={[styles.cta, ramOn && styles.ctaOff, ramBusy && styles.ctaDisabled]}
@@ -210,9 +272,37 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
         </Pressable>
       </View>
 
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Nhắc Giỗ âm lịch</Text>
+        <Text style={styles.line}>
+          Ngày bạn đánh dấu giỗ sẽ nhắc lại mỗi năm theo âm (7:30 giờ VN) — kể cả
+          khi dương lịch lệch.
+        </Text>
+        <Pressable
+          style={[styles.cta, gioOn && styles.ctaOff, gioBusy && styles.ctaDisabled]}
+          onPress={() => void toggleGio()}
+          disabled={gioBusy}
+        >
+          <Text style={[styles.ctaText, fontFamily ? { fontFamily } : null]}>
+            {gioBusy
+              ? 'Đang lên lịch…'
+              : gioOn
+                ? 'Đang bật · chạm để tắt'
+                : 'Bật nhắc giỗ trên máy'}
+          </Text>
+        </Pressable>
+      </View>
+
       <Pressable style={styles.card} onPress={onOpenSteps}>
         <Text style={styles.cardTitle}>Bước chân</Text>
         <Text style={styles.line}>Mở màn hình đếm bước · pedometer / demo</Text>
+      </Pressable>
+
+      <Pressable style={styles.card} onPress={() => void openPrivacy()}>
+        <Text style={styles.cardTitle}>Chính sách bảo mật</Text>
+        <Text style={styles.line}>
+          Local-first · giỗ / memo trên máy · mở bản đầy đủ
+        </Text>
       </Pressable>
 
       <View style={styles.card}>
@@ -220,10 +310,49 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
         <Text style={styles.line}>• Lịch âm + xé tờ lịch</Text>
         <Text style={styles.line}>• Cam kết 10 chữ → đóng dấu tự động</Text>
         <Text style={styles.line}>• Widget hôm nay + chia sẻ tờ lịch</Text>
-        <Text style={styles.line}>• Tin VnExpress + widget ghim</Text>
-        <Text style={styles.line}>• Tử vi (xem quảng cáo / Premium)</Text>
+        <Text style={styles.line}>• Giỗ âm + nhắc năm sau</Text>
+        <Text style={styles.line}>• Giá vàng / xăng + tử vi</Text>
+        <Text style={styles.hint}>
+          {storeConfig.bundleIdentifier} · v{storeConfig.version}
+        </Text>
       </View>
+
+      <Modal
+        visible={privacyOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setPrivacyOpen(false)}
+      >
+        <SafePrivacy
+          fontFamily={fontFamily}
+          onClose={() => setPrivacyOpen(false)}
+        />
+      </Modal>
     </ScrollView>
+  );
+}
+
+function SafePrivacy({
+  fontFamily,
+  onClose,
+}: {
+  fontFamily?: string;
+  onClose: () => void;
+}) {
+  return (
+    <View style={styles.privacyRoot}>
+      <View style={styles.privacyBar}>
+        <Text style={[styles.privacyTitle, fontFamily ? { fontFamily } : null]}>
+          Chính sách bảo mật
+        </Text>
+        <Pressable onPress={onClose} hitSlop={10}>
+          <Text style={styles.privacyClose}>Đóng</Text>
+        </Pressable>
+      </View>
+      <ScrollView contentContainerStyle={styles.privacyBody}>
+        <Text style={styles.privacyText}>{PRIVACY_BODY}</Text>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -339,5 +468,38 @@ const styles = StyleSheet.create({
   },
   skinTextOn: {
     color: colors.crimson,
+  },
+  privacyRoot: {
+    flex: 1,
+    backgroundColor: colors.paper,
+    paddingTop: Platform.OS === 'ios' ? 12 : 20,
+  },
+  privacyBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.page,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  privacyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.ink,
+  },
+  privacyClose: {
+    color: colors.crimson,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  privacyBody: {
+    padding: spacing.page,
+    paddingBottom: 40,
+  },
+  privacyText: {
+    fontSize: 13,
+    lineHeight: 21,
+    color: colors.ink,
   },
 });

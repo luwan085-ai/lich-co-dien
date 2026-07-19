@@ -1,16 +1,26 @@
 {
   "expo": {
-    "name": "lich-co-dien",
+    "name": "Lịch Cổ Điển",
     "slug": "lich-co-dien",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#FDFBF7",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FDFBF7"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "vn.lichcodien.app",
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "Nhắc Rằm, Mùng Một và ngày giỗ âm lịch vào sáng sớm."
+      }
     },
     "android": {
+      "package": "vn.lichcodien.app",
       "adaptiveIcon": {
         "backgroundColor": "#FDFBF7",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -22,9 +32,14 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "extra": {
+      "privacyPolicyUrl": "",
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    },
     "plugins": [
       "expo-font",
-      "expo-secure-store",
       "expo-audio",
       "expo-sharing",
       [

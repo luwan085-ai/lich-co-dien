@@ -4,15 +4,15 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../theme/tokens';
 
-const KEY = 'lich_stamp_panels_v1';
+const KEY = 'lich_stamp_panels_v2';
 
 type PanelId = 'mood' | 'praise' | 'commitment' | 'glance';
 
 type PanelState = Record<PanelId, boolean>;
 
 const DEFAULT: PanelState = {
-  mood: true,
-  praise: true,
+  mood: false,
+  praise: false,
   commitment: false,
   glance: false,
 };

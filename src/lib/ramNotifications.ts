@@ -3,18 +3,20 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { addSolarDays, type SolarDate } from '../lunar/solar';
 import { getCalendarDayForSolar } from '../lunar/today';
-import { getVietnamSolarToday } from '../lunar/vietnamTime';
+import {
+  getVietnamSolarToday,
+  vietnamWallClockDate,
+} from '../lunar/vietnamTime';
 
-if (Platform.OS !== 'web') {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
-  });
-}
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 
 const CHANNEL = 'lich-ram';
 const PREF_KEY = 'lich_ram_notif_v1';
@@ -72,13 +74,12 @@ export async function scheduleRamNotifications(): Promise<number> {
     const lunarDay = day.lunar.day;
     if (lunarDay === 1 || lunarDay === 15) {
       const label = lunarDay === 1 ? 'Mùng Một' : 'Rằm';
-      const fire = new Date(
+      const fire = vietnamWallClockDate(
         cursor.year,
-        cursor.month - 1,
+        cursor.month,
         cursor.day,
         7,
         30,
-        0,
       );
       if (fire.getTime() > Date.now()) {
         await Notifications.scheduleNotificationAsync({

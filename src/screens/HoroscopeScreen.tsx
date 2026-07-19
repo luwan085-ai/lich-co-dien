@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KillerPackTray } from '../components/KillerPackTray';
 import { BoiQueCard } from '../components/BoiQueCard';
 import { buildDailyHoroscope } from '../data/horoscope';
 import { getCalendarDay } from '../lunar/today';
@@ -49,13 +50,19 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
               displayFont ? { fontFamily: displayFont } : null,
             ]}
           >
-            {day.canChi.year}
+            {data.yearHeadline}
           </Text>
           <Text style={styles.sub}>
             {day.weekdayVi} · {day.solar.day}/{day.solar.month}/{day.solar.year}
+            {' · '}
+            Ngày {data.dayCanChi}
           </Text>
           <Text style={styles.path}>
             {day.dayPathLabel} · {day.qualityLabel}
+            {data.yearElement ? ` · hành ${data.yearElement}` : ''}
+          </Text>
+          <Text style={styles.elementNote} numberOfLines={3}>
+            {data.elementNote}
           </Text>
           <View style={styles.scorePill}>
             <Text style={styles.scoreText}>Điểm ngày {data.score}/100</Text>
@@ -88,6 +95,11 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
         ) : (
           <View style={styles.grid}>
             <Row title="Tổng quan" body={data.overall} fontFamily={fontFamily} />
+            <Row
+              title={`Khí năm · ${data.yearAnimal ?? '—'}`}
+              body={data.elementNote}
+              fontFamily={fontFamily}
+            />
             <Row title="Tình cảm" body={data.love} fontFamily={fontFamily} />
             <Row title="Công việc" body={data.work} fontFamily={fontFamily} />
             <Row title="Tài lộc" body={data.money} fontFamily={fontFamily} />
@@ -99,6 +111,10 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
             />
           </View>
         )}
+
+        <View style={styles.blockKill}>
+          <KillerPackTray day={day} fontFamily={fontFamily} />
+        </View>
 
         <BoiQueCard fontFamily={fontFamily} />
       </ScrollView>
@@ -163,6 +179,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+  elementNote: {
+    marginTop: 8,
+    color: 'rgba(255,250,243,0.72)',
+    fontSize: 12,
+    lineHeight: 18,
+  },
   scorePill: {
     alignSelf: 'flex-start',
     marginTop: 14,
@@ -213,6 +235,7 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   grid: { marginTop: 14, gap: 10 },
+  blockKill: { marginTop: 14 },
   row: {
     backgroundColor: colors.paper,
     borderWidth: 1,

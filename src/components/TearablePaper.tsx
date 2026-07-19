@@ -315,7 +315,9 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
             {showHint ? (
               <Animated.View style={[styles.hint, hintStyle]}>
                 <Pressable onPress={dismissHint} hitSlop={8}>
-                  <Text style={styles.hintText}>Vuốt trái để sang ngày</Text>
+                  <Text style={styles.hintText}>
+                    Vuốt trái / phải để sang ngày
+                  </Text>
                 </Pressable>
               </Animated.View>
             ) : null}

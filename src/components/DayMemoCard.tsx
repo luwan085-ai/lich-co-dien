@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { loadMemo, saveMemo } from '../lib/localMemos';
+import { rescheduleGioIfEnabled } from '../lib/gioNotifications';
 import { colors } from '../theme/tokens';
 
 type Props = {
@@ -17,6 +18,7 @@ type Props = {
 export function DayMemoCard({ dateKey, fontFamily }: Props) {
   const [text, setText] = useState('');
   const [isAnniversary, setIsAnniversary] = useState(false);
+  const [lunarLabel, setLunarLabel] = useState<string | null>(null);
   const [savedHint, setSavedHint] = useState(false);
 
   useEffect(() => {
@@ -26,6 +28,12 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
       if (!alive) return;
       setText(memo?.text ?? '');
       setIsAnniversary(Boolean(memo?.isAnniversary));
+      if (memo?.isAnniversary && memo.lunar) {
+        const leap = memo.lunar.leapMonth ? ' nhuận' : '';
+        setLunarLabel(`Giỗ âm ${memo.lunar.day}/${memo.lunar.month}${leap}`);
+      } else {
+        setLunarLabel(null);
+      }
       setSavedHint(false);
     })();
     return () => {
@@ -34,9 +42,16 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
   }, [dateKey]);
 
   const persist = async (nextText: string, nextAnn: boolean) => {
-    await saveMemo(dateKey, nextText, nextAnn);
+    const saved = await saveMemo(dateKey, nextText, nextAnn);
+    if (saved.isAnniversary && saved.lunar) {
+      const leap = saved.lunar.leapMonth ? ' nhuận' : '';
+      setLunarLabel(`Giỗ âm ${saved.lunar.day}/${saved.lunar.month}${leap}`);
+    } else {
+      setLunarLabel(null);
+    }
     setSavedHint(true);
     setTimeout(() => setSavedHint(false), 1200);
+    void rescheduleGioIfEnabled();
   };
 
   return (
@@ -83,6 +98,11 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
           <Text style={styles.saveText}>Lưu</Text>
         </Pressable>
       </View>
+      {lunarLabel ? (
+        <Text style={styles.lunarHint}>
+          {lunarLabel} · nhắc theo âm lịch (bật trong Cá nhân)
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -157,5 +177,12 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '800',
     fontSize: 12,
+  },
+  lunarHint: {
+    marginTop: 8,
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.crimson,
+    fontWeight: '600',
   },
 });

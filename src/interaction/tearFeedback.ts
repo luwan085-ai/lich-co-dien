@@ -47,15 +47,15 @@ export async function hapticTearTick() {
 
 /** Commit tear: impact + paper rustle. */
 export async function playTearFeedback() {
-  if (Platform.OS !== 'web') {
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      setTimeout(() => {
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }, 90);
-    } catch {
-      // no-op
-    }
+  if (Platform.OS === 'web') return;
+
+  try {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setTimeout(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }, 90);
+  } catch {
+    // no-op
   }
 
   try {

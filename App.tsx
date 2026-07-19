@@ -27,6 +27,10 @@ import {
   loadRamNotifEnabled,
   scheduleRamNotifications,
 } from './src/lib/ramNotifications';
+import {
+  loadGioNotifEnabled,
+  scheduleGioNotifications,
+} from './src/lib/gioNotifications';
 import { markVisitToday } from './src/lib/visits';
 import { PremiumProvider } from './src/monetization/premium';
 import { colors } from './src/theme/tokens';
@@ -44,6 +48,9 @@ function AppShell() {
       await markVisitToday(solarKey(today));
       if (await loadRamNotifEnabled()) {
         await scheduleRamNotifications();
+      }
+      if (await loadGioNotifEnabled()) {
+        await scheduleGioNotifications();
       }
     })();
   }, []);

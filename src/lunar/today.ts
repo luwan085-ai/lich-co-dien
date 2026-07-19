@@ -206,6 +206,8 @@ export function getMonthGrid(year: number, month: number) {
     | {
         solar: SolarDate;
         lunarDay: number;
+        lunarMonth: number;
+        leapMonth: boolean;
         tone: DayQualityTone;
         isToday: boolean;
       }
@@ -220,6 +222,8 @@ export function getMonthGrid(year: number, month: number) {
     cells.push({
       solar,
       lunarDay: d.lunar.day,
+      lunarMonth: d.lunar.month,
+      leapMonth: d.lunar.leapMonth,
       tone: d.dayPathTone,
       isToday:
         today.year === year && today.month === month && today.day === day,

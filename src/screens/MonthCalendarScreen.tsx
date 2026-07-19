@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MonthYearPicker } from '../components/MonthYearPicker';
-import { loadMemoMap, type DayMemo } from '../lib/localMemos';
+import { loadMemoMap, mapHasGioOnLunar, type DayMemo } from '../lib/localMemos';
 import { loadLastVisit, markVisitToday } from '../lib/visits';
 import { getMonthGrid } from '../lunar/today';
 import { solarKey, type SolarDate } from '../lunar/solar';
@@ -143,7 +143,13 @@ export function MonthCalendarScreen({
           const key = solarKey(cell.solar);
           const memo = memos[key];
           const hasMemo = Boolean(memo?.text);
-          const isGio = Boolean(memo?.isAnniversary);
+          const isGio =
+            Boolean(memo?.isAnniversary) ||
+            mapHasGioOnLunar(memos, {
+              month: cell.lunarMonth,
+              day: cell.lunarDay,
+              leapMonth: cell.leapMonth,
+            });
           const isSelected =
             !!selected &&
             selected.year === cell.solar.year &&

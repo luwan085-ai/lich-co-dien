@@ -1,0 +1,421 @@
+/**
+ * Local 12-con giáp pack — 5 variants per facet to avoid “same day, same line”.
+ * Picked by deterministic seed from solar + can chi (offline, no crawl).
+ */
+
+export type ZodiacLines = {
+  temperament: string;
+  love: string[];
+  work: string[];
+  money: string[];
+  advice: string[];
+};
+
+export const ZODIAC_PACK: Record<string, ZodiacLines> = {
+  Chuột: {
+    temperament: 'Nhanh nhạy, biết nắm thời cơ nhỏ.',
+    love: [
+      'Lời nói dịu dàng mở cửa trái tim hôm nay',
+      'Tránh đùa quá đà khiến người ấy hiểu nhầm',
+      'Tin nhắn ngắn chân thành còn hơn quà lớn',
+      'Gặp mặt ngắn 15 phút hơn chat cả buổi tối',
+      'Người cũ nhắn tới — trả lời lịch sự, đừng vội hẹn',
+    ],
+    work: [
+      'Việc nhỏ xếp đúng thứ tự sẽ mở việc lớn',
+      'Đừng ôm hết một mình — nhờ đúng người sẽ nhanh',
+      'Buổi sáng hợp lên kế hoạch, chiều hợp chỉnh sửa',
+      'Họp ngắn, ghi 3 dòng action rồi rút',
+      'Một email rõ ràng cứu cả ngày trễ deadline',
+    ],
+    money: [
+      'Cơ hội nhỏ nếu biết chốt sớm',
+      'Tránh chi tiêu theo cảm xúc sau 20h',
+      'Giữ quỹ dự phòng — vận Tý thích sự chắc',
+      'So giá 10 phút trước khi nhấn “mua”',
+      'Thu nhập phụ có cửa nếu làm đều 30 phút/ngày',
+    ],
+    advice: [
+      'Ngồi yên 10 phút trước khi quyết việc lớn',
+      'Ghi một ý tưởng ra giấy rồi mới làm',
+      'Tắt thông báo lúc làm việc sâu',
+      'Uống nước trước khi mở mạng xã hội',
+      'Hoàn thành việc nhỏ nhất trước 9h sáng',
+    ],
+  },
+  Trâu: {
+    temperament: 'Bền bỉ, chậm mà chắc.',
+    love: [
+      'Sự hiện diện ổn định quan trọng hơn lời hoa mỹ',
+      'Dành thời gian chất lượng cho người thân',
+      'Đừng im lặng quá lâu — nói một câu cũng đủ ấm',
+      'Nấu hoặc mua một món họ thích hôm nay',
+      'Giữ lời hẹn cũ — uy tín tình cảm nằm ở đó',
+    ],
+    work: [
+      'Làm từng khối rõ ràng — đừng đổi hướng giữa chừng',
+      'Kiên trì hôm nay sẽ thấy tiến hôm sau',
+      'Hợp hoàn thiện việc dở hơn là mở việc mới',
+      'Checklist giấy mang lại cảm giác kiểm soát',
+      'Từ chối việc phụ để giữ chất lượng việc chính',
+    ],
+    money: [
+      'Tích lũy nhỏ đều đặn tốt hơn đánh lớn',
+      'Tránh cho mượn lớn chưa có giấy tờ',
+      'Rà lại hóa đơn cố định — tiết kiệm ẩn',
+      'Không vay để “cho vui” cuối tuần',
+      'Gửi tiết kiệm đúng ngày lương nếu được',
+    ],
+    advice: [
+      'Nghỉ đúng giờ cũng là một phần kỷ luật',
+      'Đừng so tốc độ với người khác hôm nay',
+      'Giấc ngủ đủ còn hơn cà phê thứ ba',
+      'Làm một việc nhàm trước khi mở việc vui',
+      'Đi bộ chậm 15 phút sau bữa tối',
+    ],
+  },
+  Hổ: {
+    temperament: 'Mạnh mẽ, thích dẫn đầu.',
+    love: [
+      'Bộc lộ rõ ràng được ngưỡng mộ — đừng làm áp lực',
+      'Xin lỗi nhanh nếu hơi nóng tính',
+      'Cuộc hẹn ngắn ngoài trời hợp tuổi Dần',
+      'Khen một điểm cụ thể thay vì lời sáo',
+      'Tránh tranh luận trên mạng về chuyện riêng',
+    ],
+    work: [
+      'Tự tin trình bày ý tưởng; chuẩn bị số liệu trước',
+      'Tránh tranh luận vô ích sau giờ trưa',
+      'Hợp nhận việc khó nhưng có deadline rõ',
+      'Làm mẫu trước, yêu cầu đội làm sau',
+      'Đừng nhận thêm việc chỉ vì muốn tỏ ra mạnh',
+    ],
+    money: [
+      'Có tín hiệu tốt nếu giữ cái đầu lạnh',
+      'Đừng thách thức bằng tiền để chứng minh mình',
+      'Đầu tư thời gian học kỹ năng còn hơn mua vội',
+      'Chốt giá điềm tĩnh — không đấu miệng',
+      'Giữ biên lai lớn trong ví điện tử hôm nay',
+    ],
+    advice: [
+      'Hít sâu trước khi nói câu nặng',
+      'Dùng sức vào một trận chính, bỏ trận phụ',
+      'Viết mục tiêu ngày chỉ một dòng',
+      'Tránh lái xe khi đang nóng giận',
+      'Kết thúc ngày bằng 3 điều làm được',
+    ],
+  },
+  Mèo: {
+    temperament: 'Tinh tế, biết chọn khoảng cách.',
+    love: [
+      'Không khí riêng tư giúp tình cảm ấm hơn',
+      'Lắng nghe nhiều hơn khuyên bảo',
+      'Một cử chỉ nhỏ đẹp hơn lời đường mật',
+      'Chạm nhẹ lời khen về gu ăn mặc của họ',
+      'Đừng đọc tin nhắn rồi “seen” quá lâu',
+    ],
+    work: [
+      'Chi tiết hôm nay quyết định chất lượng',
+      'Hợp công việc cần thẩm mỹ hoặc sắp xếp',
+      'Tránh họp dài — ghi ý chính rồi rút',
+      'Dọn bàn 5 phút trước khi bắt đầu',
+      'Rà lỗi nhỏ trước khi nộp bản cuối',
+    ],
+    money: [
+      'Đẹp vừa đủ, đừng mua vì “đang giảm”',
+      'Thu nhập phụ có cửa nếu tinh mắt',
+      'Giữ bí mật khoản tiết kiệm cá nhân',
+      'So 2 cửa hàng online trước khi chốt',
+      'Chi cho trải nghiệm yên tĩnh đáng hơn đồ ồn',
+    ],
+    advice: [
+      'Giữ góc yên tĩnh nửa tiếng sẽ sáng ra ý',
+      'Đừng ôm chuyện người khác làm mệt mình',
+      'Nghe nhạc nhẹ khi làm việc máy móc',
+      'Tắt đèn xanh trước khi ngủ',
+      'Viết nhật ký 5 dòng tối nay',
+    ],
+  },
+  Rồng: {
+    temperament: 'Tầm nhìn rộng, thích việc lớn.',
+    love: [
+      'Chia sẻ ước mơ sẽ kéo gần khoảng cách',
+      'Tránh khoe quá — lắng nghe cũng là uy tín',
+      'Hẹn bạn cũ có thể mở trang mới',
+      'Mời người ấy góp ý kế hoạch nhỏ của bạn',
+      'Quà ý nghĩa hơn quà đắt',
+    ],
+    work: [
+      'Hôm nay hợp đề xuất hướng lớn hơn chỉnh chi tiết',
+      'Nhóm mạnh nếu bạn chịu làm cầu nối',
+      'Đừng hứa việc quá sức chỉ vì muốn tỏa sáng',
+      'Viết đề xuất 1 trang — ngắn mà rõ',
+      'Giao việc phụ để bạn giữ việc chiến lược',
+    ],
+    money: [
+      'Cơ hội hiện nếu bạn chuẩn bị hồ sơ sẵn',
+      'Tránh đầu cơ theo đám đông',
+      'Hợp đàm phán giá với thái độ điềm tĩnh',
+      'Giữ 20% ngân sách cho việc đột xuất',
+      'Đừng đầu tư vì “nghe lời bạn” không kiểm chứng',
+    ],
+    advice: [
+      'Khiêm tốn nửa bước — đường sẽ rộng hơn',
+      'Viết lại mục tiêu năm trong một dòng',
+      'Học 20 phút kỹ năng mới thay vì doomscroll',
+      'Cảm ơn người đã chỉ lối hôm qua',
+      'Ngủ sớm để giữ khí trường lãnh đạo',
+    ],
+  },
+  Rắn: {
+    temperament: 'Sâu sắc, quan sát trước khi động.',
+    love: [
+      'Nói thật muộn còn hơn giả vờ ổn',
+      'Khoảng lặng không phải lạnh nhạt — hãy giải thích',
+      'Hợp trò chuyện sâu, tránh tán gẫu nông',
+      'Một câu hỏi chân thành mở hộp đen cảm xúc',
+      'Đừng theo dõi mạng người ấy quá nhiều',
+    ],
+    work: [
+      'Phân tích kỹ một vấn đề sẽ ra lời giải',
+      'Đừng lộ hết bài — giữ một phần chiến lược',
+      'Hợp nghiên cứu, lập kế hoạch, rà soát rủi ro',
+      'Đọc kỹ hợp đồng trước khi ký',
+      'Ghi chép cuộc họp — bạn sẽ thắng bằng chi tiết',
+    ],
+    money: [
+      'Thấy “hời” hãy dừng 24h rồi quyết',
+      'Bảo vệ thông tin tài khoản hôm nay',
+      'Chi cho sức khỏe đáng hơn chi khoe',
+      'Tránh app vay nhanh lãi cao',
+      'Rà sao kê ngân hàng cuối ngày',
+    ],
+    advice: [
+      'Tin trực giác nhưng kiểm chứng bằng số',
+      'Nghỉ sớm hơn thường lệ sẽ sáng hôm sau',
+      'Tắt tin tức tiêu cực trước giờ ngủ',
+      'Thiền thở 4-7-8 trong 3 phút',
+      'Giữ bí mật kế hoạch cho tới khi chốt',
+    ],
+  },
+  Ngựa: {
+    temperament: 'Tự do, nhanh, thích đường rộng — đúng khí năm Ngọ.',
+    love: [
+      'Cùng nhau đi một đoạn đường ngắn cũng đủ gắn kết',
+      'Đừng hứa rồi quên — giữ lời quan trọng hơn hoa',
+      'Tình cảm tốt nếu cho nhau không gian thở',
+      'Tin nhắn “đến nơi chưa?” cũng là quan tâm',
+      'Tránh ghen bóng gió khi đang vội',
+    ],
+    work: [
+      'Tốc độ là lợi thế — nhớ dừng kiểm chất lượng',
+      'Hợp xuất hành, pitch, gặp khách',
+      'Tránh làm việc dở dang vì chán nửa chừng',
+      'Chia việc lớn thành 3 chặng có mốc giờ',
+      'Đứng dậy đi lại mỗi 50 phút làm việc',
+    ],
+    money: [
+      'Vận động mang lại cơ hội tiền bạc gián tiếp',
+      'Đừng tiêu hết “quỹ tự do” trong một lần',
+      'Hợp mua thứ giúp di chuyển / học kỹ năng',
+      'Xăng dầu hôm nay — so Vùng 1/2 trước khi đổ',
+      'Giữ biên lai chuyến công tác ngay',
+    ],
+    advice: [
+      'Chạy vừa sức — năm Ngựa cần nhịp, không cần cháy',
+      'Viết 3 việc phải xong trước khi mở mạng xã hội',
+      'Mang chai nước theo người cả ngày',
+      'Không lái xe khi mệt — nghỉ 10 phút',
+      'Kết ngày bằng giãn cơ nhẹ',
+    ],
+  },
+  Dê: {
+    temperament: 'Ấm áp, nghệ sĩ, cần môi trường êm.',
+    love: [
+      'Sự dịu dàng được đền đáp hôm nay',
+      'Tránh ghen bóng gió — hỏi thẳng một câu',
+      'Bữa ăn chung chữa lành khoảng cách nhỏ',
+      'Gửi một bài hát / ảnh kỷ niệm cũ',
+      'Ôm lâu hơn 5 giây nếu được',
+    ],
+    work: [
+      'Môi trường ồn làm giảm hiệu suất — tìm góc yên',
+      'Hợp sáng tạo, soạn thảo, chăm khách hàng',
+      'Đừng nhận việc chỉ vì ngại từ chối',
+      'Trang trí nhẹ góc làm việc tăng cảm hứng',
+      'Deadline mềm — tự đặt mốc sớm hơn 1 ngày',
+    ],
+    money: [
+      'Đẹp và cần dùng — chọn một thôi',
+      'Thu nhập ổn nếu kiên trì phần việc “nhàm”',
+      'Tránh vay để chơi',
+      'Chi trà cà phê có chủ đích, đừng vu vơ',
+      'Ủng hộ quỹ nhỏ gia đình nếu được',
+    ],
+    advice: [
+      'Nghe nhạc nhẹ 15 phút trước khi bàn việc khó',
+      'Bao bọc bản thân cũng là mạnh mẽ',
+      'Tắt đèn mạnh trước khi ngủ',
+      'Viết 3 điều biết ơn tối nay',
+      'Tránh drama nhóm chat',
+    ],
+  },
+  Khỉ: {
+    temperament: 'Linh hoạt, hài hước, thích thử cách mới.',
+    love: [
+      'Tiếng cười kéo gần khoảng cách nhanh',
+      'Đùa vừa phải — có chủ đề nhạy cảm hôm nay',
+      'Bất ngờ nhỏ làm ấm hơn kế hoạch dài',
+      'Meme vui hợp lúc làm lành sau cãi vã nhỏ',
+      'Đừng đùa chuyện cũ của người ấy trước đông người',
+    ],
+    work: [
+      'Cách làm mới được chào đón nếu có kết quả thử',
+      'Hợp brainstorm, sửa lỗi nhanh, hỗ trợ đội',
+      'Tránh nhảy việc giữa chừng chỉ vì tò mò',
+      'Demo 10 phút thuyết phục hơn slide dài',
+      'Hỏi “làm sao nhanh hơn?” trước khi làm',
+    ],
+    money: [
+      'Có cửa “kiếm nhanh” nhưng đừng liều',
+      'Học một mẹ tip tiết kiệm vui cũng được',
+      'Giữ biên lai — dễ quên khoản nhỏ',
+      'Tránh app game rút tiền',
+      'Chia quỹ “chơi” riêng, đụng quỹ sống là dừng',
+    ],
+    advice: [
+      'Dùng trí để giản lược, không để rối thêm',
+      'Hoàn thành một việc nhàm trước khi chơi',
+      'Đặt giờ giới hạn mạng xã hội',
+      'Nói ít khoe — làm nhiều hơn',
+      'Ngủ đủ để trí não còn linh hoạt',
+    ],
+  },
+  Gà: {
+    temperament: 'Chu đáo, thích ngăn nắp và công bằng.',
+    love: [
+      'Thể hiện quan tâm bằng việc làm cụ thể',
+      'Tránh chỉ trích giọng nặng — góp ý mềm',
+      'Lịch sự vẫn nóng nếu chân thành',
+      'Nhắc giờ thuốc / họp giúp người ấy hôm nay',
+      'Gấp quần áo giúp cũng là yêu',
+    ],
+    work: [
+      'Checklist hôm nay là lá bùa may',
+      'Hợp trình bày, kiểm soát chất lượng, deadline',
+      'Đừng ôm lỗi người khác làm mình mất điểm',
+      'File đặt tên rõ — cứu cả team',
+      'Họp đúng giờ, kết đúng giờ',
+    ],
+    money: [
+      'Sổ thu chi rõ ràng mang lại bình an',
+      'Mua đúng nhu cầu đã ghi sẵn',
+      'Có tín hiệu tăng thu nếu chăm uy tín',
+      'Đối chiếu hóa đơn thẻ cuối tháng sớm',
+      'Không mua đồ thứ ba cùng loại',
+    ],
+    advice: [
+      'Dọn bàn làm việc 5 phút — đầu óc cũng sáng',
+      'Nói lời cảm ơn rõ ràng với đồng nghiệp',
+      'Lên lịch tuần vào tối Chủ nhật',
+      'Giữ nước bên cạnh bàn làm việc',
+      'Tắt máy đúng giờ để não nghỉ',
+    ],
+  },
+  Chó: {
+    temperament: 'Trung thành, trực giác tốt với người.',
+    love: [
+      'Đứng về phía người thương — họ cần thấy điều đó',
+      'Nghi ngờ vô cớ làm lạnh — hỏi trước khi kết luận',
+      'Hẹn gia đình / bạn thân làm ấm lòng',
+      'Bảo vệ ranh giới chung thay vì tranh hơn thua',
+      'Tin tưởng nửa bước — họ sẽ đáp lại',
+    ],
+    work: [
+      'Được tin tưởng nếu giữ lời hứa nhỏ',
+      'Hợp làm cầu nối, chăm sóc khách, bảo vệ quy trình',
+      'Tránh ôm story drama công sở',
+      'Báo cáo sớm vấn đề còn chữa được',
+      'Đứng ra nhận lỗi nhỏ — uy tín tăng',
+    ],
+    money: [
+      'Giúp người vừa đủ — đừng làm tổn quỹ mình',
+      'Thu nhập ổn định > lời hứa hoa hồng',
+      'Kiểm tra mail / hóa đơn tránh mất mát',
+      'Không đứng tên vay hộ',
+      'Quỹ khẩn cấp tối thiểu 1 tháng chi tiêu',
+    ],
+    advice: [
+      'Tin người đã chứng minh bằng hành động',
+      'Đi bộ tối giúp xả thẳng tính',
+      'Giảm tin tức chính trị độc hại hôm nay',
+      'Gọi điện cho bố/mẹ 5 phút',
+      'Khóa cửa kỹ — trực giác đang nhắc',
+    ],
+  },
+  Lợn: {
+    temperament: 'Hào phóng, biết hưởng thụ đúng lúc.',
+    love: [
+      'Sự rộng lượng làm người ấy mềm lại',
+      'Đừng mua chuộc — thời gian chất lượng hơn quà',
+      'Thú nhận lỗi nhỏ hôm nay được tha thứ nhanh',
+      'Mời một bữa vừa túi tiền nhưng ấm',
+      'Cười nhiều hơn tranh luận hôm nay',
+    ],
+    work: [
+      'Làm vui nhưng có chuẩn — đồng nghiệp quý',
+      'Hợp kết nối, chốt deal ôn hòa, hỗ trợ hậu cần',
+      'Tránh trì hoãn việc giấy tờ tới phút cuối',
+      'Chia sẻ công việc công bằng trong nhóm',
+      'Khen đồng đội trước mặt sếp một câu thật',
+    ],
+    money: [
+      'Chi cho trải nghiệm đáng hơn đồ trưng',
+      'Có lộc nhỏ nếu biết chia sẻ công bằng',
+      'Đặt hạn mức tiêu trước khi đi chơi',
+      'Tránh “bao tất” làm mình cháy túi',
+      'Gửi quà nhỏ cảm ơn đối tác — vừa đủ',
+    ],
+    advice: [
+      'Vui vừa phải — để dành năng lượng ngày mai',
+      'Cảm ơn cơ thể bằng một giấc ngủ đủ',
+      'Ăn chậm, nhai kỹ bữa trưa',
+      'Không đổ lỗi rượu bia cho quyết định xấu',
+      'Viết danh sách vui lành mạnh cuối tuần',
+    ],
+  },
+};
+
+/** Map library zodiac ("Ngựa") → pack key */
+export function zodiacPackKey(animalVi: string | null | undefined): string {
+  if (!animalVi) return 'Ngựa';
+  const map: Record<string, string> = {
+    Chuột: 'Chuột',
+    Tý: 'Chuột',
+    Trâu: 'Trâu',
+    Sửu: 'Trâu',
+    Hổ: 'Hổ',
+    Dần: 'Hổ',
+    Mèo: 'Mèo',
+    Mão: 'Mèo',
+    Cat: 'Mèo',
+    Rồng: 'Rồng',
+    Thìn: 'Rồng',
+    Rắn: 'Rắn',
+    Tỵ: 'Rắn',
+    Ngựa: 'Ngựa',
+    Ngọ: 'Ngựa',
+    Dê: 'Dê',
+    Mùi: 'Dê',
+    Khỉ: 'Khỉ',
+    Thân: 'Khỉ',
+    Gà: 'Gà',
+    Dậu: 'Gà',
+    Chó: 'Chó',
+    Tuất: 'Chó',
+    Lợn: 'Lợn',
+    Heo: 'Lợn',
+    Hợi: 'Lợn',
+  };
+  return map[animalVi] ?? animalVi;
+}
