@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, AppState } from 'react-native';
 import { getCalendarDayForSolar } from '../lunar/today';
 import {
   addSolarDays,
@@ -18,7 +19,8 @@ type Options = {
 };
 
 export function useCalendarPages({ selected, onChangeSelected }: Options) {
-  const today = useMemo(() => getVietnamSolarToday(), []);
+  const [today, setToday] = useState(() => getVietnamSolarToday());
+  const [hourTick, setHourTick] = useState(0);
   const [records, setRecords] = useState<Record<string, DatePageRecord>>({});
 
   useEffect(() => {
@@ -33,7 +35,25 @@ export function useCalendarPages({ selected, onChangeSelected }: Options) {
     };
   }, []);
 
-  const hour = isSameSolar(selected, today) ? getVietnamHour() : 12;
+  useEffect(() => {
+    const refresh = () => {
+      setToday(getVietnamSolarToday());
+      setHourTick((n) => n + 1);
+    };
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
+    });
+    const id = setInterval(refresh, 60_000);
+    return () => {
+      sub.remove();
+      clearInterval(id);
+    };
+  }, []);
+
+  const hour = useMemo(
+    () => (isSameSolar(selected, today) ? getVietnamHour() : 12),
+    [selected, today, hourTick],
+  );
 
   const currentDay = useMemo(
     () => getCalendarDayForSolar(selected, hour),
@@ -63,38 +83,62 @@ export function useCalendarPages({ selected, onChangeSelected }: Options) {
   const pageRecord = records[solarKey(selected)];
 
   const setMoodStamp = useCallback(
-    (mood: Mood) => {
+    async (mood: Mood) => {
       const key = solarKey(selected);
-      setRecords((prev) => ({
-        ...prev,
-        [key]: { ...prev[key], moodStamp: mood },
+      const prev = records[key];
+      setRecords((map) => ({
+        ...map,
+        [key]: { ...map[key], moodStamp: mood },
       }));
-      void saveMood(key, mood);
+      try {
+        await saveMood(key, mood);
+      } catch {
+        setRecords((map) => ({
+          ...map,
+          [key]: prev ?? { ...map[key], moodStamp: undefined },
+        }));
+        Alert.alert('Chưa lưu được', 'Thử đóng dấu lại sau giây lát.');
+      }
     },
-    [selected],
+    [selected, records],
   );
 
   const setPraiseStamp = useCallback(
-    (praise: Praise, inkSeed: number) => {
+    async (praise: Praise, inkSeed: number) => {
       const key = solarKey(selected);
-      setRecords((prev) => ({
-        ...prev,
+      const prev = records[key];
+      setRecords((map) => ({
+        ...map,
         [key]: {
-          ...prev[key],
+          ...map[key],
           praiseStamp: praise,
           praiseInkSeed: inkSeed,
         },
       }));
-      void savePraise(key, praise, inkSeed);
+      try {
+        await savePraise(key, praise, inkSeed);
+      } catch {
+        setRecords((map) => {
+          if (!prev) {
+            const { praiseStamp: _p, praiseInkSeed: _i, ...rest } =
+              map[key] ?? {};
+            void _p;
+            void _i;
+            return { ...map, [key]: rest };
+          }
+          return { ...map, [key]: prev };
+        });
+        Alert.alert('Chưa lưu được', 'Thử đóng dấu lại sau giây lát.');
+      }
     },
-    [selected],
+    [selected, records],
   );
 
   const todayDay = useMemo(() => {
-    const solar = getVietnamSolarToday();
+    const solar = today;
     const peekHour = getVietnamHour();
     return getCalendarDayForSolar(solar, peekHour);
-  }, []);
+  }, [today, hourTick]);
 
   return {
     today,

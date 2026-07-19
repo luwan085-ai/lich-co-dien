@@ -102,13 +102,21 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
     try {
       const next = !ramOn;
       const n = await toggleRamNotifications(next);
+      if (next && n < 0) {
+        setRamOn(false);
+        Alert.alert(
+          'Chưa có quyền thông báo',
+          'Hãy bật thông báo cho Lịch Cổ Điển trong Cài đặt hệ thống.',
+        );
+        return;
+      }
       setRamOn(next);
       if (next) {
         Alert.alert(
           'Đã bật nhắc',
           n > 0
             ? `Đã lên lịch ${n} buổi sáng Rằm / Mùng Một (7:30 giờ VN).`
-            : 'Đã bật nhưng chưa có ngày sắp tới trong 60 ngày (hiếm).',
+            : 'Đã bật nhưng chưa có Rằm / Mùng Một trong 60 ngày tới (hiếm).',
         );
       }
     } finally {
@@ -128,6 +136,14 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
     try {
       const next = !gioOn;
       const n = await toggleGioNotifications(next);
+      if (next && n < 0) {
+        setGioOn(false);
+        Alert.alert(
+          'Chưa có quyền thông báo',
+          'Hãy bật thông báo cho Lịch Cổ Điển trong Cài đặt hệ thống.',
+        );
+        return;
+      }
       setGioOn(next);
       if (next) {
         Alert.alert(

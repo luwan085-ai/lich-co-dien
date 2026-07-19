@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MonthYearPicker } from '../components/MonthYearPicker';
 import { loadMemoMap, mapHasGioOnLunar, type DayMemo } from '../lib/localMemos';
 import { loadLastVisit, markVisitToday } from '../lib/visits';
@@ -32,7 +32,7 @@ export function MonthCalendarScreen({
   selected,
   onSelectDay,
 }: Props) {
-  const today = useMemo(() => getVietnamSolarToday(), []);
+  const [today, setToday] = useState(() => getVietnamSolarToday());
   const todayKey = solarKey(today);
   const [cursor, setCursor] = useState({
     year: selected?.year ?? today.year,
@@ -41,6 +41,18 @@ export function MonthCalendarScreen({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [memos, setMemos] = useState<Record<string, DayMemo>>({});
   const [missedDays, setMissedDays] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setToday(getVietnamSolarToday());
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') refresh();
+    });
+    const id = setInterval(refresh, 60_000);
+    return () => {
+      sub.remove();
+      clearInterval(id);
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -56,20 +68,24 @@ export function MonthCalendarScreen({
   useEffect(() => {
     let alive = true;
     void (async () => {
-      const last = await loadLastVisit();
-      if (!alive) return;
-      if (last?.dateKey && last.dateKey !== todayKey) {
-        const [ly, lm, ld] = last.dateKey.split('-').map(Number);
-        const prev = new Date(ly, lm - 1, ld);
-        const now = new Date(today.year, today.month - 1, today.day);
-        const diff = Math.round(
-          (now.getTime() - prev.getTime()) / (24 * 60 * 60 * 1000),
-        );
-        setMissedDays(diff > 0 ? diff : 0);
-      } else {
-        setMissedDays(0);
+      try {
+        const last = await loadLastVisit();
+        if (!alive) return;
+        if (last?.dateKey && last.dateKey !== todayKey) {
+          const [ly, lm, ld] = last.dateKey.split('-').map(Number);
+          const prev = new Date(ly, lm - 1, ld);
+          const now = new Date(today.year, today.month - 1, today.day);
+          const diff = Math.round(
+            (now.getTime() - prev.getTime()) / (24 * 60 * 60 * 1000),
+          );
+          setMissedDays(diff > 0 ? diff : 0);
+        } else {
+          setMissedDays(0);
+        }
+        await markVisitToday(todayKey);
+      } catch {
+        if (alive) setMissedDays(0);
       }
-      await markVisitToday(todayKey);
     })();
     return () => {
       alive = false;

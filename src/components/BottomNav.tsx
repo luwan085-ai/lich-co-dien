@@ -33,6 +33,10 @@ export function BottomNav({ active, fontFamily, onPressTab }: Props) {
             key={tab.id}
             style={styles.item}
             onPress={() => onPressTab(tab.id)}
+            accessibilityRole="tab"
+            accessibilityLabel={tab.label}
+            accessibilityState={{ selected: isActive }}
+            hitSlop={6}
           >
             <Ionicons
               name={isActive ? tab.iconActive : tab.icon}
@@ -68,6 +72,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     gap: 3,
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingVertical: 4,
   },
   label: {
     fontSize: 9,

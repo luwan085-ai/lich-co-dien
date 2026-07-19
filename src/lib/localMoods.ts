@@ -77,9 +77,13 @@ async function persistPageMap(map: Record<string, DatePageRecord>) {
 }
 
 export async function saveMood(dateKey: string, mood: Mood) {
-  const map = await loadPageMap();
-  map[dateKey] = { ...map[dateKey], moodStamp: mood };
-  await persistPageMap(map);
+  try {
+    const map = await loadPageMap();
+    map[dateKey] = { ...map[dateKey], moodStamp: mood };
+    await persistPageMap(map);
+  } catch (e) {
+    throw e instanceof Error ? e : new Error('saveMood failed');
+  }
 }
 
 export async function savePraise(
@@ -87,13 +91,17 @@ export async function savePraise(
   praise: Praise,
   inkSeed: number,
 ) {
-  const map = await loadPageMap();
-  map[dateKey] = {
-    ...map[dateKey],
-    praiseStamp: praise,
-    praiseInkSeed: inkSeed,
-  };
-  await persistPageMap(map);
+  try {
+    const map = await loadPageMap();
+    map[dateKey] = {
+      ...map[dateKey],
+      praiseStamp: praise,
+      praiseInkSeed: inkSeed,
+    };
+    await persistPageMap(map);
+  } catch (e) {
+    throw e instanceof Error ? e : new Error('savePraise failed');
+  }
 }
 
 export async function loadMoodMap(): Promise<Record<string, Mood>> {

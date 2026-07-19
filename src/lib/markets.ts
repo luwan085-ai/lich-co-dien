@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 export type PetrolRegion = 1 | 2;
 
@@ -67,9 +68,11 @@ export async function savePetrolRegion(region: PetrolRegion): Promise<void> {
 
 async function fetchText(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, {
-      headers: { Accept: 'application/json, text/plain, */*' },
-    });
+    const res = await fetchWithTimeout(
+      url,
+      { headers: { Accept: 'application/json, text/plain, */*' } },
+      12_000,
+    );
     if (!res.ok) return null;
     return await res.text();
   } catch {

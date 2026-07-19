@@ -1,3 +1,6 @@
+import { Platform } from 'react-native';
+import { fetchWithTimeout } from './fetchWithTimeout';
+
 export type NewsItem = {
   title: string;
   source: string;
@@ -18,6 +21,10 @@ const FALLBACK: NewsItem[] = [
     source: 'Lịch Cổ Điển',
   },
 ];
+
+const FEED = 'https://vnexpress.net/rss/tin-moi-nhat.rss';
+/** CORS-friendly reader for Expo web preview (returns markdown, not raw XML). */
+const FEED_VIA_JINA = `https://r.jina.ai/https://vnexpress.net/rss/tin-moi-nhat.rss`;
 
 function stripTags(s: string) {
   return s
@@ -50,25 +57,59 @@ function parseRssTitles(xml: string, limit = 3): NewsItem[] {
   return items;
 }
 
-/** Fetch latest headlines (VnExpress RSS). Falls back to local copy offline. */
-export async function fetchDailyNews(): Promise<NewsItem[]> {
-  const feed = 'https://vnexpress.net/rss/tin-moi-nhat.rss';
-  const endpoints = [
-    // allorigins helps browser CORS on Expo web
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(feed)}`,
-    feed,
-  ];
+/** Parse jina.ai markdown dump of the RSS page. */
+function parseJinaMarkdown(md: string, limit = 3): NewsItem[] {
+  const items: NewsItem[] = [];
+  const re = /###\s*\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(md)) !== null) {
+    const title = m[1].trim();
+    if (!title) continue;
+    items.push({ title, source: 'VnExpress', link: m[2] });
+    if (items.length >= limit) break;
+  }
+  return items;
+}
 
-  for (const url of endpoints) {
-    try {
-      const res = await fetch(url, { headers: { Accept: 'application/rss+xml, text/xml, */*' } });
-      if (!res.ok) continue;
-      const xml = await res.text();
-      const items = parseRssTitles(xml, 3);
+async function fetchText(url: string): Promise<string | null> {
+  try {
+    const res = await fetchWithTimeout(
+      url,
+      {
+        headers: { Accept: 'application/rss+xml, text/xml, text/plain, */*' },
+      },
+      12_000,
+    );
+    if (!res.ok) return null;
+    return await res.text();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch latest headlines (VnExpress RSS).
+ * - Native: direct RSS (no CORS)
+ * - Web: jina reader only — never hit blocked origins (avoids console CORS noise)
+ * Falls back to local copy offline.
+ */
+export async function fetchDailyNews(): Promise<NewsItem[]> {
+  if (Platform.OS === 'web') {
+    const md = await fetchText(FEED_VIA_JINA);
+    if (md) {
+      const items = parseJinaMarkdown(md, 3);
       if (items.length) return items;
-    } catch {
-      // try next
+      // Sometimes jina still embeds XML fragments
+      const fromXml = parseRssTitles(md, 3);
+      if (fromXml.length) return fromXml;
     }
+    return FALLBACK;
+  }
+
+  const xml = await fetchText(FEED);
+  if (xml) {
+    const items = parseRssTitles(xml, 3);
+    if (items.length) return items;
   }
   return FALLBACK;
 }

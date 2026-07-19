@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFonts } from 'expo-font';
 import { Mali_700Bold } from '@expo-google-fonts/mali';
 import {
@@ -11,7 +11,7 @@ import {
   BeVietnamPro_700Bold,
 } from '@expo-google-fonts/be-vietnam-pro';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav, type TabId } from './src/components/BottomNav';
@@ -21,7 +21,7 @@ import { MonthCalendarScreen } from './src/screens/MonthCalendarScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { StepsScreen } from './src/screens/StepsScreen';
 import type { SolarDate } from './src/lunar/solar';
-import { solarKey } from './src/lunar/solar';
+import { isSameSolar } from './src/lunar/solar';
 import { getVietnamSolarToday } from './src/lunar/vietnamTime';
 import {
   loadRamNotifEnabled,
@@ -31,7 +31,6 @@ import {
   loadGioNotifEnabled,
   scheduleGioNotifications,
 } from './src/lib/gioNotifications';
-import { markVisitToday } from './src/lib/visits';
 import { PremiumProvider } from './src/monetization/premium';
 import { colors } from './src/theme/tokens';
 
@@ -41,18 +40,42 @@ function AppShell() {
     getVietnamSolarToday(),
   );
   const [showSteps, setShowSteps] = useState(false);
+  const todayRef = useRef<SolarDate>(getVietnamSolarToday());
 
   useEffect(() => {
     void (async () => {
-      const today = getVietnamSolarToday();
-      await markVisitToday(solarKey(today));
-      if (await loadRamNotifEnabled()) {
-        await scheduleRamNotifications();
-      }
-      if (await loadGioNotifEnabled()) {
-        await scheduleGioNotifications();
+      try {
+        // Do NOT markVisit here — Month tab reads last visit then marks.
+        if (await loadRamNotifEnabled()) {
+          await scheduleRamNotifications();
+        }
+        if (await loadGioNotifEnabled()) {
+          await scheduleGioNotifications();
+        }
+      } catch {
+        // Storage / notifications can fail on web or denied perms
       }
     })();
+  }, []);
+
+  /** When VN calendar day rolls (or app returns from background), refresh “today”. */
+  useEffect(() => {
+    const syncToday = () => {
+      const next = getVietnamSolarToday();
+      const prevToday = todayRef.current;
+      if (isSameSolar(prevToday, next)) return;
+      todayRef.current = next;
+      setSelected((sel) => (isSameSolar(sel, prevToday) ? next : sel));
+    };
+
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') syncToday();
+    });
+    const id = setInterval(syncToday, 60_000);
+    return () => {
+      sub.remove();
+      clearInterval(id);
+    };
   }, []);
 
   const [fontsLoaded] = useFonts({

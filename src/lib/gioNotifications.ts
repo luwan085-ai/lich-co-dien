@@ -149,11 +149,17 @@ export async function scheduleGioNotifications(): Promise<number> {
 }
 
 export async function toggleGioNotifications(on: boolean): Promise<number> {
-  await setGioNotifEnabled(on);
   if (!on) {
+    await setGioNotifEnabled(false);
     await cancelGioNotifications();
     return 0;
   }
+  const ok = await ensureNotificationPermission();
+  if (!ok) {
+    await setGioNotifEnabled(false);
+    return -1;
+  }
+  await setGioNotifEnabled(true);
   return scheduleGioNotifications();
 }
 

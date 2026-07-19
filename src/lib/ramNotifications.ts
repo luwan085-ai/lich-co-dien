@@ -103,10 +103,16 @@ export async function scheduleRamNotifications(): Promise<number> {
 }
 
 export async function toggleRamNotifications(on: boolean): Promise<number> {
-  await setRamNotifEnabled(on);
   if (!on) {
+    await setRamNotifEnabled(false);
     await cancelRamNotifications();
     return 0;
   }
+  const ok = await ensureNotificationPermission();
+  if (!ok) {
+    await setRamNotifEnabled(false);
+    return -1;
+  }
+  await setRamNotifEnabled(true);
   return scheduleRamNotifications();
 }
