@@ -16,11 +16,14 @@
       "supportsTablet": true,
       "bundleIdentifier": "vn.lichcodien.app",
       "infoPlist": {
-        "NSUserNotificationsUsageDescription": "Nhắc Rằm, Mùng Một và ngày giỗ âm lịch vào sáng sớm."
+        "NSUserNotificationsUsageDescription": "Nhắc Rằm, Mùng Một, giỗ và sinh nhật âm vào sáng 7:30 giờ Việt Nam."
       }
     },
     "android": {
       "package": "vn.lichcodien.app",
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#FDFBF7",
         "foregroundImage": "./assets/android-icon-foreground.png",

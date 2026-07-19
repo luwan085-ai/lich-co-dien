@@ -10,15 +10,28 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_PRIVACY_URL": "https://luwan085-ai.github.io/lich-co-dien/privacy.html"
+      },
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_PRIVACY_URL": "https://luwan085-ai.github.io/lich-co-dien/privacy.html"
+      }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "track": "internal"
+      }
+    }
   }
 }

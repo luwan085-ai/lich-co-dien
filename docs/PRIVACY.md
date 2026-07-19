@@ -8,7 +8,7 @@
 
 Ứng dụng ưu tiên **local-first**. Các mục sau được lưu trên thiết bị (AsyncStorage / bộ nhớ máy), không gửi lên máy chủ của chúng tôi:
 
-- Ghi chú ngày, đánh dấu **giỗ / kỷ niệm** (theo âm lịch)
+- Ghi chú ngày, đánh dấu **giỗ âm** và **sinh nhật âm**
 - Cam kết / lời hứa ngày và dấu đóng
 - Tùy chọn widget, vùng giá xăng
 - Lịch sử ghé thăm nhẹ (welcome-back)
@@ -16,7 +16,7 @@
 
 ## Thông báo
 
-Nếu bạn bật nhắc **Rằm / Mùng Một** hoặc **Giỗ âm lịch**, hệ thống thông báo của iOS/Android sẽ nhận lịch nhắc cục bộ. Nội dung nhắc không chứa dữ liệu nhạy cảm ngoài tiêu đề / nội dung bạn đã ghi chú ngắn.
+Nếu bạn bật nhắc **Rằm / Mùng Một** hoặc **Giỗ & sinh nhật âm**, hệ thống thông báo của iOS/Android sẽ nhận lịch nhắc cục bộ lúc **07:30 giờ Việt Nam**. Nội dung nhắc không chứa dữ liệu nhạy cảm ngoài tiêu đề / nội dung bạn đã ghi chú ngắn.
 
 ## Mạng (tuỳ chọn)
 
@@ -47,4 +47,4 @@ Câu hỏi về quyền riêng tư: cập nhật email / form khi đăng ký tà
 
 ---
 
-*Host file này trên GitHub Pages / Notion / Cloudflare Pages và dán URL công khai vào `EXPO_PUBLIC_PRIVACY_URL` trước khi submit store.*
+*Host [`privacy.html`](./privacy.html) trên GitHub Pages (branch `main`, folder `/docs`) và dán URL vào `EXPO_PUBLIC_PRIVACY_URL` trước khi submit store. Xem [`EAS-SETUP.md`](./EAS-SETUP.md).*
