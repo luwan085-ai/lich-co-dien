@@ -92,8 +92,8 @@ export function KillerPackTray({ day, fontFamily }: Props) {
       </Card>
 
       <Card
-        title="🔮 Con Số May Mắn & Thần Tài"
-        desc="Gợi ý vui để thử vận Vietlott / xổ số chiều nay."
+        title="🎱 Cặp số may mắn hôm nay"
+        desc="Số Đề / Lô Tô · gợi ý vui 00–99 cho xổ số kiến thiết chiều nay."
         fontFamily={fontFamily}
         accent="#0F766E"
       >
@@ -106,10 +106,10 @@ export function KillerPackTray({ day, fontFamily }: Props) {
           ))}
         </View>
         <Pressable
-          style={styles.vietlott}
-          onPress={() => void Linking.openURL(pack.taiLoc.vietlottUrl)}
+          style={styles.kqxs}
+          onPress={() => void Linking.openURL(pack.taiLoc.kqxsUrl)}
         >
-          <Text style={styles.vietlottText}>Mở Vietlott · xem kết quả ›</Text>
+          <Text style={styles.kqxsText}>Xem KQXS · xoso.com.vn ›</Text>
         </Pressable>
         <Text style={styles.disclaimer}>{pack.taiLoc.disclaimer}</Text>
         <Text style={styles.disclaimerLegal}>
@@ -263,13 +263,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0F766E',
   },
-  vietlott: {
+  kqxs: {
     marginTop: 12,
     backgroundColor: colors.lacquer,
     paddingVertical: 10,
     alignItems: 'center',
   },
-  vietlottText: {
+  kqxsText: {
     color: colors.goldSoft,
     fontWeight: '800',
     fontSize: 12,

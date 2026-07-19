@@ -8,6 +8,8 @@ export type KillerHour = {
   branch: string;
   time: string;
   label: string;
+  /** Raw hour (0–23) for comparison — never parse the display string. */
+  startHour: number;
 };
 
 export type KillerXung = {
@@ -22,7 +24,8 @@ export type KillerLucky = {
   animal: string;
   numbers: number[];
   headline: string;
-  vietlottUrl: string;
+  /** Public KQXS result site (not a bet slip). */
+  kqxsUrl: string;
   disclaimer: string;
 };
 
@@ -48,27 +51,26 @@ export type KillerPack = {
 
 function businessHours(day: CalendarDay): KillerHour[] {
   return (day.hoangHours ?? [])
-    .filter((h) => {
-      const start = parseInt(h.time.split(':')[0] ?? '0', 10);
-      return start >= 7 && start < 20;
+    .map((h) => {
+      const startHour = parseInt(h.time.split(':')[0] ?? '0', 10);
+      return {
+        branch: h.branch,
+        time: h.time.replace(':00', 'h').replace('-', ' – '),
+        label: `Giờ ${h.branch}`,
+        startHour: Number.isFinite(startHour) ? startHour : 0,
+      };
     })
-    .map((h) => ({
-      branch: h.branch,
-      time: h.time.replace(':00', 'h').replace('-', ' – '),
-      label: `Giờ ${h.branch}`,
-    }));
+    .filter((h) => h.startHour >= 7 && h.startHour < 20);
 }
 
 function pickBestBusiness(hours: KillerHour[]): KillerHour | null {
   if (!hours.length) return null;
-  // Prefer morning open-shop window 7–11
-  const morning = hours.find((h) => {
-    const start = parseInt(h.time, 10);
-    return start >= 7 && start <= 11;
-  });
+  // Prefer morning open-shop window 7–11 (numeric, not display string)
+  const morning = hours.find((h) => h.startHour >= 7 && h.startHour <= 11);
   return morning ?? hours[0];
 }
 
+/** Traditional VN local draw vibe — cặp số 00…99 (Số Đề / Lô Tô). */
 function luckyNumbers(day: CalendarDay, animal: string): number[] {
   const seed =
     day.solar.year * 372 +
@@ -80,12 +82,12 @@ function luckyNumbers(day: CalendarDay, animal: string): number[] {
   let x = Math.abs(seed) || 1;
   while (set.size < 4) {
     x = (x * 1103515245 + 12345) >>> 0;
-    set.add((x % 99) + 1);
+    set.add(x % 100);
   }
   return [...set].sort((a, b) => a - b);
 }
 
-/** Build daily killer pack for home / Tử vi. */
+/** Build daily killer pack for Tử vi tray. */
 export function buildKillerPack(day: CalendarDay): KillerPack {
   const dayCc = parseCanChi(day.canChi.day);
   const dayBranch = (dayCc.branch ?? 'Ngọ') as Branch;
@@ -147,10 +149,12 @@ export function buildKillerPack(day: CalendarDay): KillerPack {
     taiLoc: {
       animal,
       numbers,
-      headline: `Con số tài lộc hôm nay cho tuổi ${animal}: ${numbers.join(', ')}`,
-      vietlottUrl: 'https://vietlott.vn/vi/trang-chu',
+      headline: `Cặp số may mắn hôm nay cho tuổi ${animal}: ${numbers
+        .map((n) => String(n).padStart(2, '0'))
+        .join(', ')}`,
+      kqxsUrl: 'https://xoso.com.vn/',
       disclaimer:
-        'Thông tin chỉ mang tính giải trí, không đảm bảo trúng thưởng. Vui chơi có trách nhiệm. Người dưới 18 tuổi không được tham gia xổ số/Vietlott.',
+        'Gợi ý vui cặp số 00–99 (Số Đề / Lô Tô / xổ số kiến thiết). Không đảm bảo trúng thưởng. Vui chơi có trách nhiệm. Người dưới 18 tuổi không được tham gia.',
     },
   };
 }

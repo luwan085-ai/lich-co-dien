@@ -44,7 +44,7 @@ const PRIVACY_BODY = `Lịch Cổ Điển ưu tiên lưu cục bộ trên máy b
 • Giá vàng / xăng / tin — chỉ khi có mạng (có bản offline)
 • Quảng cáo AdMob & mua Premium (RevenueCat) — khi bạn gắn khóa production
 
-Không thu thập hồ sơ cá nhân để bán. Số may / Vietlott chỉ mang tính giải trí; dưới 18 tuổi không tham gia xổ số.
+Không thu thập hồ sơ cá nhân để bán. Cặp số may mắn chỉ mang tính giải trí; dưới 18 tuổi không tham gia xổ số.
 
 Host bản đầy đủ: docs/PRIVACY.md → dán URL vào EXPO_PUBLIC_PRIVACY_URL trước khi nộp store.`;
 

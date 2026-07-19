@@ -33,7 +33,7 @@
 
 ## Content / compliance
 - [x] Tử vi local packs: ≥5 lines/facet (love/work/money/advice)
-- [x] Vietlott block shows VN disclaimer (giải trí · trách nhiệm · dưới 18)
+- [x] Lucky cặp số 00–99 (Số Đề / Lô Tô) + VN disclaimer + KQXS link
 - [ ] Do **not** auto-push Giờ Hoàng Đạo on day-1 — keep for Update #1
 - [x] Giỗ lưu lunar intent + nhắc theo âm (`src/lib/gioNotifications.ts`)
 

@@ -39,7 +39,7 @@ Các bên đó xử lý dữ liệu theo chính sách riêng và theo quy địn
 
 ## Trẻ em
 
-Ứng dụng không dành để thu thập dữ liệu trẻ em. Khối số may mắn / Vietlott chỉ mang tính giải trí; người dưới 18 tuổi không nên tham gia xổ số.
+Ứng dụng không dành để thu thập dữ liệu trẻ em. Khối cặp số may mắn (00–99) chỉ mang tính giải trí; người dưới 18 tuổi không nên tham gia xổ số.
 
 ## Liên hệ
 
