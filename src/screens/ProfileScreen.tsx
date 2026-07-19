@@ -177,7 +177,7 @@ export function ProfileScreen({
           'Đã bật nhắc giỗ',
           n > 0
             ? `Đã lên lịch ${n} buổi sáng giỗ (7:30 giờ VN · theo âm lịch).`
-            : 'Chưa có ngày đánh dấu giỗ. Vào Hôm nay → Ghi chú / Giỗ lễ để đánh dấu.',
+            : 'Chưa có giỗ hoặc sinh nhật âm. Vào Hôm nay → Ghi chú / Giỗ lễ để chọn loại.',
         );
       }
     } finally {
@@ -334,7 +334,7 @@ export function ProfileScreen({
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Nhắc Giỗ âm lịch</Text>
         <Text style={styles.line}>
-          Ngày bạn đánh dấu giỗ sẽ nhắc lại mỗi năm theo âm (7:30 giờ VN) — kể cả
+          Ngày bạn đánh dấu giỗ hoặc sinh nhật âm sẽ nhắc lại mỗi năm theo âm (7:30 giờ VN) — kể cả
           khi dương lịch lệch.
         </Text>
         <Text style={[styles.line, styles.advanceLabel]}>
@@ -371,7 +371,7 @@ export function ProfileScreen({
         </Pressable>
         <Pressable style={styles.listLink} onPress={onOpenGioList}>
           <Text style={[styles.listLinkText, fontFamily ? { fontFamily } : null]}>
-            Danh sách giỗ ›
+            Danh sách giỗ & sinh nhật ›
           </Text>
         </Pressable>
       </View>

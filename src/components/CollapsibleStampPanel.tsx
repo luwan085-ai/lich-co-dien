@@ -87,8 +87,19 @@ export function CollapsibleStampPanel({
   }
 
   if (!open) {
+    const a11yLabel = summaryHeadline
+      ? `${title}. ${summaryHeadline}. ${summaryDetail ?? summary ?? sub}`
+      : `${title}. ${summary || sub}`;
     return (
-      <Pressable style={styles.strip} onPress={toggle}>
+      <Pressable
+        style={styles.strip}
+        onPress={toggle}
+        accessibilityRole="button"
+        accessibilityLabel={a11yLabel}
+        accessibilityHint="Chạm để mở rộng"
+        accessibilityState={{ expanded: false }}
+        hitSlop={4}
+      >
         <View style={styles.stripAccent} />
         <View style={styles.stripBody}>
           <Text style={[styles.stripTitle, fontFamily ? { fontFamily } : null]}>
@@ -119,7 +130,15 @@ export function CollapsibleStampPanel({
 
   return (
     <View style={styles.wrap}>
-      <Pressable style={styles.header} onPress={toggle}>
+      <Pressable
+        style={styles.header}
+        onPress={toggle}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityHint="Chạm để thu gọn"
+        accessibilityState={{ expanded: true }}
+        hitSlop={4}
+      >
         <View style={{ flex: 1 }}>
           <Text style={[styles.title, fontFamily ? { fontFamily } : null]}>
             {title}
@@ -152,6 +171,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 8,
     marginBottom: 4,
+    minHeight: 44,
   },
   title: {
     fontSize: 12,
@@ -176,6 +196,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     overflow: 'hidden',
+    minHeight: 44,
   },
   stripAccent: {
     position: 'absolute',

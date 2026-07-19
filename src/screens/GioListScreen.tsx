@@ -58,10 +58,10 @@ export function GioListScreen({
       ) : null}
 
       <Text style={[styles.kicker, fontFamily ? { fontFamily } : null]}>
-        GIỖ ÂM LỊCH
+        GIỖ & SINH NHẬT ÂM
       </Text>
       <Text style={[styles.title, displayFont ? { fontFamily: displayFont } : null]}>
-        Danh sách giỗ
+        Danh sách giỗ & sinh nhật
       </Text>
       <Text style={styles.sub}>
         Sắp xếp theo ngày dương tiếp theo · chạm để mở tờ lịch ngày đó.
@@ -71,9 +71,9 @@ export function GioListScreen({
         <ActivityIndicator color={colors.crimson} style={styles.loader} />
       ) : items.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>Chưa có giỗ đánh dấu</Text>
+          <Text style={styles.emptyTitle}>Chưa có giỗ hoặc sinh nhật âm</Text>
           <Text style={styles.emptyLine}>
-            Vào Hôm nay → Ghi chú / Giỗ lễ → bật “Đánh dấu giỗ / kỷ niệm”.
+            Vào Hôm nay → Ghi chú / Giỗ lễ → chọn Giỗ âm hoặc Sinh nhật âm.
           </Text>
         </View>
       ) : (
@@ -82,19 +82,30 @@ export function GioListScreen({
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         >
-          {items.map((item) => (
+          {items.map((item) => {
+            const isBirthday = item.annivKind === 'birthday';
+            return (
             <Pressable
               key={`${item.lunarLabel}-${item.solar.year}-${item.solar.month}-${item.solar.day}`}
               style={styles.row}
               onPress={() => onSelectDay(item.solar)}
+              accessibilityRole="button"
+              accessibilityLabel={`${item.label}, ${dDayLabel(item.daysUntil)}`}
             >
               <View style={styles.rowTop}>
-                <Text
-                  style={[styles.rowLabel, fontFamily ? { fontFamily } : null]}
-                  numberOfLines={1}
-                >
-                  {item.label}
-                </Text>
+                <View style={styles.rowLabelWrap}>
+                  <Text
+                    style={[styles.kindBadge, isBirthday && styles.kindBirthday]}
+                  >
+                    {isBirthday ? 'Sinh nhật' : 'Giỗ'}
+                  </Text>
+                  <Text
+                    style={[styles.rowLabel, fontFamily ? { fontFamily } : null]}
+                    numberOfLines={1}
+                  >
+                    {item.label}
+                  </Text>
+                </View>
                 <Text style={[styles.dday, item.daysUntil === 0 && styles.ddayToday]}>
                   {dDayLabel(item.daysUntil)}
                 </Text>
@@ -104,7 +115,8 @@ export function GioListScreen({
                 Lần tới {formatSolarShort(item.solar)} dương
               </Text>
             </Pressable>
-          ))}
+            );
+          })}
         </ScrollView>
       )}
     </View>
@@ -185,6 +197,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
+  },
+  rowLabelWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+  },
+  kindBadge: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    color: colors.crimsonDeep,
+    borderWidth: 1,
+    borderColor: colors.crimsonSoft,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    backgroundColor: '#FFF1F2',
+  },
+  kindBirthday: {
+    color: '#8F7328',
+    borderColor: colors.goldSoft,
+    backgroundColor: '#FFF8E7',
   },
   rowLabel: {
     flex: 1,

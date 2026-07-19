@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { getVietnamSolarToday, vietnamWallClockDate } from '../lunar/vietnamTime';
-import { loadMemoMap, type LunarAnniv } from './localMemos';
+import { loadMemoMap, type AnnivKind, type LunarAnniv } from './localMemos';
 import {
   advanceSolarFor,
   formatLunarLabel,
@@ -23,9 +23,30 @@ const YEARS_AHEAD = 2;
 async function ensureAndroidChannel() {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(CHANNEL, {
-    name: 'Giỗ âm lịch',
+    name: 'Giỗ & sinh nhật âm',
     importance: Notifications.AndroidImportance.DEFAULT,
   });
+}
+
+function dayTitle(kind: AnnivKind, lunarLabel: string): string {
+  return kind === 'birthday'
+    ? `Sinh nhật · ${lunarLabel}`
+    : `Giỗ · ${lunarLabel}`;
+}
+
+function advanceTitle(
+  kind: AnnivKind,
+  advanceDays: GioAdvanceDays,
+  lunarLabel: string,
+): string {
+  if (advanceDays === 1) {
+    return kind === 'birthday'
+      ? `Ngày mai sinh nhật · ${lunarLabel}`
+      : `Ngày mai giỗ · ${lunarLabel}`;
+  }
+  return kind === 'birthday'
+    ? `Sinh nhật sau ${advanceDays} ngày · ${lunarLabel}`
+    : `Giỗ sau ${advanceDays} ngày · ${lunarLabel}`;
 }
 
 export async function loadGioNotifEnabled(): Promise<boolean> {
@@ -105,7 +126,7 @@ export async function scheduleGioNotifications(): Promise<number> {
   const now = Date.now();
 
   for (const item of items) {
-    const { lunar } = item;
+    const { lunar, annivKind } = item;
     const note = labelForLunarGio(map, lunar);
     const lunarLabel = formatLunarLabel(lunar);
     const solars = listFutureOccurrenceSolars(
@@ -126,7 +147,7 @@ export async function scheduleGioNotifications(): Promise<number> {
       if (dayFire.getTime() > now) {
         await scheduleAt(
           dayFire,
-          `Giỗ · ${lunarLabel}`,
+          dayTitle(annivKind, lunarLabel),
           note,
           lunar,
           solar,
@@ -148,9 +169,7 @@ export async function scheduleGioNotifications(): Promise<number> {
         if (advFire.getTime() > now) {
           await scheduleAt(
             advFire,
-            advanceDays === 1
-              ? `Ngày mai giỗ · ${lunarLabel}`
-              : `Giỗ sau ${advanceDays} ngày · ${lunarLabel}`,
+            advanceTitle(annivKind, advanceDays, lunarLabel),
             `Ngày ${formatSolarShort(solar)} dương · ${note}`,
             lunar,
             solar,
