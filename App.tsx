@@ -18,6 +18,7 @@ import { BottomNav, type TabId } from './src/components/BottomNav';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { HoroscopeScreen } from './src/screens/HoroscopeScreen';
 import { MonthCalendarScreen } from './src/screens/MonthCalendarScreen';
+import { GioListScreen } from './src/screens/GioListScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { StepsScreen } from './src/screens/StepsScreen';
 import type { SolarDate } from './src/lunar/solar';
@@ -29,6 +30,7 @@ import {
 } from './src/lib/ramNotifications';
 import {
   loadGioNotifEnabled,
+  rescheduleGioIfEnabled,
   scheduleGioNotifications,
 } from './src/lib/gioNotifications';
 import { PremiumProvider } from './src/monetization/premium';
@@ -40,6 +42,7 @@ function AppShell() {
     getVietnamSolarToday(),
   );
   const [showSteps, setShowSteps] = useState(false);
+  const [showGioList, setShowGioList] = useState(false);
   const todayRef = useRef<SolarDate>(getVietnamSolarToday());
 
   useEffect(() => {
@@ -66,6 +69,16 @@ function AppShell() {
       if (isSameSolar(prevToday, next)) return;
       todayRef.current = next;
       setSelected((sel) => (isSameSolar(sel, prevToday) ? next : sel));
+      void (async () => {
+        try {
+          if (await loadRamNotifEnabled()) {
+            await scheduleRamNotifications();
+          }
+          await rescheduleGioIfEnabled();
+        } catch {
+          // notifications can fail on denied perms
+        }
+      })();
     };
 
     const sub = AppState.addEventListener('change', (state) => {
@@ -101,6 +114,7 @@ function AppShell() {
 
   const onPressTab = (id: TabId) => {
     setShowSteps(false);
+    setShowGioList(false);
     setTab(id);
   };
 
@@ -114,14 +128,26 @@ function AppShell() {
             onBack={() => setShowSteps(false)}
           />
         ) : null}
-        {!showSteps && tab === 'today' ? (
+        {showGioList ? (
+          <GioListScreen
+            fontFamily={fonts?.bodySemi}
+            displayFont={fonts?.display}
+            onBack={() => setShowGioList(false)}
+            onSelectDay={(day) => {
+              setSelected(day);
+              setShowGioList(false);
+              setTab('today');
+            }}
+          />
+        ) : null}
+        {!showSteps && !showGioList && tab === 'today' ? (
           <HomeScreen
             fonts={fonts}
             selected={selected}
             onChangeSelected={setSelected}
           />
         ) : null}
-        {!showSteps && tab === 'month' ? (
+        {!showSteps && !showGioList && tab === 'month' ? (
           <MonthCalendarScreen
             fontFamily={fonts?.bodySemi}
             displayFont={fonts?.display}
@@ -132,16 +158,17 @@ function AppShell() {
             }}
           />
         ) : null}
-        {!showSteps && tab === 'horoscope' ? (
+        {!showSteps && !showGioList && tab === 'horoscope' ? (
           <HoroscopeScreen
             fontFamily={fonts?.bodySemi}
             displayFont={fonts?.display}
           />
         ) : null}
-        {!showSteps && tab === 'profile' ? (
+        {!showSteps && !showGioList && tab === 'profile' ? (
           <ProfileScreen
             fontFamily={fonts?.bodySemi}
             onOpenSteps={() => setShowSteps(true)}
+            onOpenGioList={() => setShowGioList(true)}
           />
         ) : null}
       </View>

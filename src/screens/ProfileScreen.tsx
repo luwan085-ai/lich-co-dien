@@ -14,8 +14,15 @@ import {
 import { storeConfig } from '../config/store';
 import {
   loadGioNotifEnabled,
+  rescheduleGioIfEnabled,
   toggleGioNotifications,
 } from '../lib/gioNotifications';
+import {
+  GIO_ADVANCE_OPTIONS,
+  loadGioAdvanceDays,
+  setGioAdvanceDays,
+  type GioAdvanceDays,
+} from '../lib/gioSchedule';
 import {
   loadRamNotifEnabled,
   toggleRamNotifications,
@@ -29,6 +36,7 @@ import { colors, spacing } from '../theme/tokens';
 type Props = {
   fontFamily?: string;
   onOpenSteps: () => void;
+  onOpenGioList: () => void;
 };
 
 const SKINS: { id: StampSkin; label: string; premium?: boolean }[] = [
@@ -48,7 +56,7 @@ Không thu thập hồ sơ cá nhân để bán. Cặp số may mắn chỉ mang
 
 Host bản đầy đủ: docs/PRIVACY.md → dán URL vào EXPO_PUBLIC_PRIVACY_URL trước khi nộp store.`;
 
-export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
+export function ProfileScreen({ fontFamily, onOpenSteps, onOpenGioList }: Props) {
   const {
     ready,
     isPremium,
@@ -65,11 +73,13 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
   const [ramBusy, setRamBusy] = useState(false);
   const [gioOn, setGioOn] = useState(false);
   const [gioBusy, setGioBusy] = useState(false);
+  const [gioAdvance, setGioAdvance] = useState<GioAdvanceDays>(1);
   const [privacyOpen, setPrivacyOpen] = useState(false);
 
   useEffect(() => {
     void loadRamNotifEnabled().then(setRamOn);
     void loadGioNotifEnabled().then(setGioOn);
+    void loadGioAdvanceDays().then(setGioAdvance);
   }, []);
 
   const buy = async () => {
@@ -121,6 +131,15 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
       }
     } finally {
       setRamBusy(false);
+    }
+  };
+
+  const pickAdvance = async (days: GioAdvanceDays) => {
+    if (days === gioAdvance) return;
+    setGioAdvance(days);
+    await setGioAdvanceDays(days);
+    if (gioOn) {
+      await rescheduleGioIfEnabled();
     }
   };
 
@@ -294,6 +313,25 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
           Ngày bạn đánh dấu giỗ sẽ nhắc lại mỗi năm theo âm (7:30 giờ VN) — kể cả
           khi dương lịch lệch.
         </Text>
+        <Text style={[styles.line, styles.advanceLabel]}>
+          Nhắc trước (sáng 7:30 giờ VN)
+        </Text>
+        <View style={styles.advanceRow}>
+          {GIO_ADVANCE_OPTIONS.map((opt) => {
+            const on = gioAdvance === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                style={[styles.advanceChip, on && styles.advanceChipOn]}
+                onPress={() => void pickAdvance(opt.value)}
+              >
+                <Text style={[styles.advanceText, on && styles.advanceTextOn]}>
+                  {opt.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
         <Pressable
           style={[styles.cta, gioOn && styles.ctaOff, gioBusy && styles.ctaDisabled]}
           onPress={() => void toggleGio()}
@@ -305,6 +343,11 @@ export function ProfileScreen({ fontFamily, onOpenSteps }: Props) {
               : gioOn
                 ? 'Đang bật · chạm để tắt'
                 : 'Bật nhắc giỗ trên máy'}
+          </Text>
+        </Pressable>
+        <Pressable style={styles.listLink} onPress={onOpenGioList}>
+          <Text style={[styles.listLinkText, fontFamily ? { fontFamily } : null]}>
+            Danh sách giỗ ›
           </Text>
         </Pressable>
       </View>
@@ -484,6 +527,47 @@ const styles = StyleSheet.create({
   },
   skinTextOn: {
     color: colors.crimson,
+  },
+  advanceLabel: {
+    marginTop: 10,
+    fontWeight: '700',
+    color: colors.inkMuted,
+    fontSize: 12,
+  },
+  advanceRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  advanceChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: colors.white,
+  },
+  advanceChipOn: {
+    borderColor: colors.crimson,
+    backgroundColor: '#FFF5F4',
+  },
+  advanceText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.inkMuted,
+  },
+  advanceTextOn: {
+    color: colors.crimson,
+  },
+  listLink: {
+    marginTop: 12,
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  listLinkText: {
+    color: colors.crimson,
+    fontWeight: '800',
+    fontSize: 13,
   },
   privacyRoot: {
     flex: 1,

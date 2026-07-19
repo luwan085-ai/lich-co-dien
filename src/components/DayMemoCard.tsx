@@ -7,8 +7,13 @@ import {
   View,
 } from 'react-native';
 import { CollapsibleStampPanel } from './CollapsibleStampPanel';
-import { loadMemo, saveMemo } from '../lib/localMemos';
 import { rescheduleGioIfEnabled } from '../lib/gioNotifications';
+import {
+  dDayLabel,
+  formatSolarShort,
+  nextOccurrence,
+} from '../lib/gioSchedule';
+import { loadMemo, saveMemo } from '../lib/localMemos';
 import { colors } from '../theme/tokens';
 
 type Props = {
@@ -20,6 +25,7 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
   const [text, setText] = useState('');
   const [isAnniversary, setIsAnniversary] = useState(false);
   const [lunarLabel, setLunarLabel] = useState<string | null>(null);
+  const [nextLine, setNextLine] = useState<string | null>(null);
   const [savedHint, setSavedHint] = useState(false);
 
   useEffect(() => {
@@ -32,8 +38,15 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
       if (memo?.isAnniversary && memo.lunar) {
         const leap = memo.lunar.leapMonth ? ' nhuận' : '';
         setLunarLabel(`Giỗ âm ${memo.lunar.day}/${memo.lunar.month}${leap}`);
+        const next = nextOccurrence(memo.lunar);
+        setNextLine(
+          next
+            ? `Lần tới: ${formatSolarShort(next.solar)} dương · ${dDayLabel(next.daysUntil).toLowerCase()}`
+            : null,
+        );
       } else {
         setLunarLabel(null);
+        setNextLine(null);
       }
       setSavedHint(false);
     })();
@@ -47,8 +60,15 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
     if (saved.isAnniversary && saved.lunar) {
       const leap = saved.lunar.leapMonth ? ' nhuận' : '';
       setLunarLabel(`Giỗ âm ${saved.lunar.day}/${saved.lunar.month}${leap}`);
+      const next = nextOccurrence(saved.lunar);
+      setNextLine(
+        next
+          ? `Lần tới: ${formatSolarShort(next.solar)} dương · ${dDayLabel(next.daysUntil).toLowerCase()}`
+          : null,
+      );
     } else {
       setLunarLabel(null);
+      setNextLine(null);
     }
     setSavedHint(true);
     setTimeout(() => setSavedHint(false), 1200);
@@ -107,9 +127,12 @@ export function DayMemoCard({ dateKey, fontFamily }: Props) {
         </Pressable>
       </View>
       {lunarLabel ? (
-        <Text style={styles.lunarHint}>
-          {lunarLabel} · nhắc theo âm lịch (bật trong Cá nhân)
-        </Text>
+        <>
+          <Text style={styles.lunarHint}>
+            {lunarLabel} · nhắc theo âm lịch (bật trong Cá nhân)
+          </Text>
+          {nextLine ? <Text style={styles.nextLine}>{nextLine}</Text> : null}
+        </>
       ) : null}
     </CollapsibleStampPanel>
   );
@@ -175,6 +198,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: colors.crimson,
+    fontWeight: '600',
+  },
+  nextLine: {
+    marginTop: 4,
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.inkMuted,
     fontWeight: '600',
   },
 });
