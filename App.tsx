@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFonts } from 'expo-font';
-import * as Notifications from 'expo-notifications';
 import { Mali_700Bold } from '@expo-google-fonts/mali';
 import {
   NotoSerif_400Regular_Italic,
@@ -35,6 +34,7 @@ import {
   scheduleGioNotifications,
 } from './src/lib/gioNotifications';
 import { PremiumProvider } from './src/monetization/premium';
+import { bindGioNotificationTap } from './src/lib/notificationTap';
 import { colors } from './src/theme/tokens';
 
 function AppShell() {
@@ -74,20 +74,7 @@ function AppShell() {
   };
 
   useEffect(() => {
-    void Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (!response) return;
-      openFromNotification(
-        response.notification.request.content.data as Record<string, unknown>,
-      );
-    });
-    const sub = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        openFromNotification(
-          response.notification.request.content.data as Record<string, unknown>,
-        );
-      },
-    );
-    return () => sub.remove();
+    return bindGioNotificationTap(openFromNotification);
   }, []);
 
   /** When VN calendar day rolls (or app returns from background), refresh “today”. */
