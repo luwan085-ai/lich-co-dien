@@ -15,10 +15,17 @@ import { playStampFeedback } from '../lib/localMoods';
 type Props = {
   selected?: Mood;
   fontFamily?: string;
+  /** Profile card — no collapsible home panel wrapper. */
+  plain?: boolean;
   onPick: (mood: Mood) => void;
 };
 
-export function MoodStampPicker({ selected, fontFamily, onPick }: Props) {
+export function MoodStampPicker({
+  selected,
+  fontFamily,
+  plain,
+  onPick,
+}: Props) {
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
   const rotate = useSharedValue(-12);
@@ -50,18 +57,8 @@ export function MoodStampPicker({ selected, fontFamily, onPick }: Props) {
 
   const active = MOOD_STAMPS.find((m) => m.id === selected);
 
-  return (
-    <CollapsibleStampPanel
-      panelId="mood"
-      title="ĐÓNG DẤU CẢM XÚC"
-      sub="Chọn một ấn · đóng vào trang lịch hôm nay"
-      summary={
-        active
-          ? `Đã đóng: ${active.labelVi} (${active.char}) · chạm để mở`
-          : 'Chạm để chọn cảm xúc hôm nay'
-      }
-      fontFamily={fontFamily}
-    >
+  const body = (
+    <>
       <View style={styles.row}>
         {MOOD_STAMPS.map((m) => {
           const isOn = selected === m.id;
@@ -103,6 +100,24 @@ export function MoodStampPicker({ selected, fontFamily, onPick }: Props) {
           </Animated.View>
         ) : null}
       </View>
+    </>
+  );
+
+  if (plain) return body;
+
+  return (
+    <CollapsibleStampPanel
+      panelId="mood"
+      title="ĐÓNG DẤU CẢM XÚC"
+      sub="Chọn một ấn · đóng vào trang lịch hôm nay"
+      summary={
+        active
+          ? `Đã đóng: ${active.labelVi} (${active.char}) · chạm để mở`
+          : 'Chạm để chọn cảm xúc hôm nay'
+      }
+      fontFamily={fontFamily}
+    >
+      {body}
     </CollapsibleStampPanel>
   );
 }

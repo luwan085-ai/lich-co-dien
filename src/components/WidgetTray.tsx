@@ -215,11 +215,6 @@ function MarketWidget({
               : 'Chạm để xem giá hôm nay'}
           </Text>
         </View>
-        {board?.isFallback ? (
-          <View style={styles.offlineBadge}>
-            <Text style={styles.offlineBadgeText}>offline</Text>
-          </View>
-        ) : null}
         {pinned ? (
           <Ionicons name="pin" size={14} color={colors.goldDeep} />
         ) : (
@@ -269,11 +264,9 @@ function MarketWidget({
       ) : (
         <>
           {board.isFallback ? (
-            <View style={styles.offlineBanner}>
-              <Text style={styles.offlineText}>
-                OFFLINE · giá tham khảo, chạm làm mới khi có mạng
-              </Text>
-            </View>
+            <Text style={styles.offlineHint}>
+              Dữ liệu tham khảo · làm mới khi có mạng
+            </Text>
           ) : null}
 
           <Text style={styles.section}>
@@ -484,18 +477,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     marginBottom: 4,
   },
-  offlineBanner: {
-    backgroundColor: '#FFF8E8',
-    borderWidth: 1,
-    borderColor: '#E8D5A3',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+  offlineHint: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: colors.inkFaint,
     marginBottom: 8,
-  },
-  offlineText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.goldDeep,
+    letterSpacing: 0.1,
   },
   regionRow: {
     marginTop: 10,
@@ -609,18 +596,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: colors.inkMuted,
-  },
-  offlineBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 3,
-    backgroundColor: colors.paperDeep,
-  },
-  offlineBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: colors.inkFaint,
-    textTransform: 'lowercase',
   },
   stripText: {
     flex: 1,

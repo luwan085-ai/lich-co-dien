@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { CalendarDay } from '../lunar/today';
+import { storeConfig } from '../config/store';
 import { colors } from '../theme/tokens';
 import { HoaBeNgoan, type FlowerFace } from './HoaBeNgoan';
 import { stampInkForSkin } from '../lib/stampInk';
@@ -70,6 +71,7 @@ export const ShareDayCard = forwardRef<View, Props>(function ShareDayCard(
           </Text>
         </View>
       ) : null}
+      <Text style={styles.watermark}>{storeConfig.displayName}</Text>
     </View>
   );
 });
@@ -143,5 +145,14 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     fontStyle: 'italic',
+  },
+  watermark: {
+    marginTop: 16,
+    fontSize: 8,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    color: colors.inkFaint,
+    textAlign: 'center',
+    opacity: 0.65,
   },
 });

@@ -11,8 +11,10 @@ import {
 } from '../lunar/vietnamTime';
 import {
   hydrateMemo,
+  inferAnnivKind,
   loadMemoMap,
   lunarAnnivKey,
+  type AnnivKind,
   type DayMemo,
   type LunarAnniv,
 } from './localMemos';
@@ -34,6 +36,7 @@ export const GIO_ADVANCE_OPTIONS: {
 export type GioItem = {
   lunar: LunarAnniv;
   label: string;
+  annivKind: AnnivKind;
   /** Solar dateKey where memo was first saved */
   dateKey: string;
 };
@@ -42,6 +45,7 @@ export type GioOccurrence = {
   lunar: LunarAnniv;
   solar: SolarDate;
   label: string;
+  annivKind: AnnivKind;
   daysUntil: number;
   lunarLabel: string;
   dateKey: string;
@@ -110,7 +114,10 @@ export function listUniqueGio(map: Record<string, DayMemo>): GioItem[] {
     seen.add(id);
     out.push({
       lunar: memo.lunar,
-      label: memo.text.trim() || 'Giỗ âm lịch',
+      label:
+        memo.text.trim() ||
+        (memo.annivKind === 'birthday' ? 'Sinh nhật âm' : 'Giỗ âm lịch'),
+      annivKind: memo.annivKind ?? inferAnnivKind(memo.text),
       dateKey,
     });
   }
@@ -141,7 +148,7 @@ export function nextOccurrence(
   lunar: LunarAnniv,
   from: SolarDate = getVietnamSolarToday(),
   searchYears = 5,
-): Omit<GioOccurrence, 'label' | 'dateKey'> | null {
+): Omit<GioOccurrence, 'label' | 'dateKey' | 'annivKind'> | null {
   for (let y = from.year - 1; y <= from.year + searchYears; y += 1) {
     const solar = solarForLunarYear(lunar, y);
     if (!solar) continue;
@@ -170,6 +177,7 @@ export function listUpcomingGio(
     occurrences.push({
       ...next,
       label: item.label,
+      annivKind: item.annivKind,
       dateKey: item.dateKey,
     });
   }

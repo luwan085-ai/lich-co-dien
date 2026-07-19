@@ -4,7 +4,6 @@ import {
   useEffect,
   useImperativeHandle,
   useState,
-  type ReactNode,
 } from 'react';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,7 +21,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { CalendarDay } from '../lunar/today';
 import { colors } from '../theme/tokens';
-import { CalendarPaper } from './CalendarPaper';
+import { CalendarPaper, type PosterBrandWhisperProps } from './CalendarPaper';
 import {
   hapticTearTick,
   playTearFeedback,
@@ -49,8 +48,7 @@ type Props = {
   fonts?: Fonts;
   /** Fill remaining space under the lacquer mount (home hero). */
   fill?: boolean;
-  leftWing?: ReactNode;
-  rightWing?: ReactNode;
+  brandWhisper?: PosterBrandWhisperProps;
   onTornNext: () => void;
   onTornPrev: () => void;
   onTornToday: () => void;
@@ -70,8 +68,7 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
       peekPrev,
       fonts,
       fill,
-      leftWing,
-      rightWing,
+      brandWhisper,
       onTornNext,
       onTornPrev,
       onTornToday,
@@ -319,14 +316,7 @@ export const TearablePaper = forwardRef<TearablePaperHandle, Props>(
 
         <GestureDetector gesture={pan}>
           <Animated.View style={[styles.front, fill && styles.frontFill, frontStyle]}>
-            <CalendarPaper
-              day={day}
-              fonts={fonts}
-              fill={fill}
-              compact={fill}
-              leftWing={leftWing}
-              rightWing={rightWing}
-            />
+            <CalendarPaper day={day} fonts={fonts} fill={fill} compact={fill} brandWhisper={brandWhisper} />
             {showHint ? (
               <Animated.View style={[styles.hint, hintStyle]}>
                 <Pressable onPress={dismissHint} hitSlop={8}>

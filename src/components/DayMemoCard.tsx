@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -9,12 +10,17 @@ import {
 import { CollapsibleStampPanel } from './CollapsibleStampPanel';
 import { rescheduleGioIfEnabled } from '../lib/gioNotifications';
 import {
-  dDayLabel,
   formatSolarShort,
   nextOccurrence,
 } from '../lib/gioSchedule';
 import { nearestPersonalLunarEvent } from '../lib/lunarUpcoming';
-import { loadMemo, saveMemo } from '../lib/localMemos';
+import {
+  inferAnnivKind,
+  loadMemo,
+  saveMemo,
+  type AnnivKind,
+} from '../lib/localMemos';
+import { buildMemoCardPreview } from '../lib/memoCardPreview';
 import { colors } from '../theme/tokens';
 
 type Props = {
@@ -24,6 +30,12 @@ type Props = {
   gioRefreshKey?: number;
 };
 
+function lunarAnnivLabel(kind: AnnivKind, day: number, month: number, leap: boolean): string {
+  const prefix = kind === 'birthday' ? 'Sinh nhật âm' : 'Giỗ âm';
+  const leapSuffix = leap ? ' nhuận' : '';
+  return `${prefix} ${day}/${month}${leapSuffix}`;
+}
+
 export function DayMemoCard({
   dateKey,
   fontFamily,
@@ -32,25 +44,21 @@ export function DayMemoCard({
 }: Props) {
   const [text, setText] = useState('');
   const [isAnniversary, setIsAnniversary] = useState(false);
+  const [annivKind, setAnnivKind] = useState<AnnivKind | null>(null);
   const [lunarLabel, setLunarLabel] = useState<string | null>(null);
   const [nextLine, setNextLine] = useState<string | null>(null);
-  const [gioPreview, setGioPreview] = useState<string | null>(null);
+  const [nearestGio, setNearestGio] = useState<
+    Awaited<ReturnType<typeof nearestPersonalLunarEvent>>
+  >(null);
   const [savedHint, setSavedHint] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   useEffect(() => {
     let alive = true;
     void (async () => {
       const nearest = await nearestPersonalLunarEvent();
       if (!alive) return;
-      if (nearest) {
-        const prefix =
-          nearest.kind === 'birthday' ? 'Sinh nhật âm' : 'Sắp giỗ';
-        setGioPreview(
-          `${prefix}: ${nearest.label} · ${dDayLabel(nearest.daysUntil).toLowerCase()}`,
-        );
-      } else {
-        setGioPreview(null);
-      }
+      setNearestGio(nearest);
     })();
     return () => {
       alive = false;
@@ -63,14 +71,25 @@ export function DayMemoCard({
       const memo = await loadMemo(dateKey);
       if (!alive) return;
       setText(memo?.text ?? '');
-      setIsAnniversary(Boolean(memo?.isAnniversary));
-      if (memo?.isAnniversary && memo.lunar) {
-        const leap = memo.lunar.leapMonth ? ' nhuận' : '';
-        setLunarLabel(`Giỗ âm ${memo.lunar.day}/${memo.lunar.month}${leap}`);
+      const ann = Boolean(memo?.isAnniversary);
+      setIsAnniversary(ann);
+      const kind = ann
+        ? (memo?.annivKind ?? inferAnnivKind(memo?.text ?? ''))
+        : null;
+      setAnnivKind(kind);
+      if (ann && memo?.lunar && kind) {
+        setLunarLabel(
+          lunarAnnivLabel(
+            kind,
+            memo.lunar.day,
+            memo.lunar.month,
+            memo.lunar.leapMonth,
+          ),
+        );
         const next = nextOccurrence(memo.lunar);
         setNextLine(
           next
-            ? `Lần tới: ${formatSolarShort(next.solar)} dương · ${dDayLabel(next.daysUntil).toLowerCase()}`
+            ? `Lần tới: ${formatSolarShort(next.solar)} dương · Còn ${next.daysUntil} ngày`
             : null,
         );
       } else {
@@ -78,59 +97,110 @@ export function DayMemoCard({
         setNextLine(null);
       }
       setSavedHint(false);
+      setSaveFailed(false);
     })();
     return () => {
       alive = false;
     };
   }, [dateKey]);
 
-  const persist = async (nextText: string, nextAnn: boolean) => {
-    const saved = await saveMemo(dateKey, nextText, nextAnn);
+  const preview = useMemo(
+    () => buildMemoCardPreview(nearestGio, text),
+    [nearestGio, text],
+  );
+
+  const applySavedMemo = async (saved: Awaited<ReturnType<typeof saveMemo>>) => {
     if (saved.isAnniversary && saved.lunar) {
-      const leap = saved.lunar.leapMonth ? ' nhuận' : '';
-      setLunarLabel(`Giỗ âm ${saved.lunar.day}/${saved.lunar.month}${leap}`);
+      const kind = saved.annivKind ?? inferAnnivKind(saved.text);
+      setAnnivKind(kind);
+      setLunarLabel(
+        lunarAnnivLabel(
+          kind,
+          saved.lunar.day,
+          saved.lunar.month,
+          saved.lunar.leapMonth,
+        ),
+      );
       const next = nextOccurrence(saved.lunar);
       setNextLine(
         next
-          ? `Lần tới: ${formatSolarShort(next.solar)} dương · ${dDayLabel(next.daysUntil).toLowerCase()}`
+          ? `Lần tới: ${formatSolarShort(next.solar)} dương · Còn ${next.daysUntil} ngày`
           : null,
       );
     } else {
+      setAnnivKind(null);
       setLunarLabel(null);
       setNextLine(null);
     }
     setSavedHint(true);
+    setSaveFailed(false);
     setTimeout(() => setSavedHint(false), 1200);
     void rescheduleGioIfEnabled();
-    if (saved.isAnniversary) onGioChanged?.();
+    if (saved.isAnniversary) {
+      onGioChanged?.();
+      const nearest = await nearestPersonalLunarEvent();
+      setNearestGio(nearest);
+    }
   };
 
-  const summary = lunarLabel
-    ? nextLine
-      ? `${lunarLabel} · ${nextLine.replace('Lần tới: ', '')} · chạm để mở`
-      : `${lunarLabel} · chạm để mở`
-    : gioPreview
-      ? `${gioPreview} · chạm để mở`
-      : text.trim()
-        ? `${text.trim().slice(0, 36)}${text.trim().length > 36 ? '…' : ''} · chạm để mở`
-        : 'Ghi chú / đánh dấu giỗ · chạm để mở';
+  const persist = async (
+    nextText: string,
+    nextAnn: boolean,
+    nextKind: AnnivKind | null,
+  ) => {
+    const prevText = text;
+    const prevAnn = isAnniversary;
+    const prevKind = annivKind;
+    try {
+      const saved = await saveMemo(
+        dateKey,
+        nextText,
+        nextAnn,
+        nextKind ?? undefined,
+      );
+      await applySavedMemo(saved);
+    } catch {
+      setText(prevText);
+      setIsAnniversary(prevAnn);
+      setAnnivKind(prevKind);
+      setSaveFailed(true);
+      Alert.alert(
+        'Chưa lưu được',
+        'Không ghi được ghi chú. Kiểm tra bộ nhớ thiết bị và thử lại.',
+      );
+    }
+  };
+
+  const selectKind = (kind: AnnivKind) => {
+    const active = isAnniversary && annivKind === kind;
+    const nextAnn = !active;
+    const nextKind = nextAnn ? kind : null;
+    setIsAnniversary(nextAnn);
+    setAnnivKind(nextKind);
+    void persist(text, nextAnn, nextKind);
+  };
 
   return (
     <CollapsibleStampPanel
       panelId="memo"
       title="GHI CHÚ / GIỖ LỄ"
-      sub="Ghi chú ngày · giỗ / sinh nhật âm (ghi “sinh nhật …”)"
-      summary={summary}
+      sub="Ghi chú ngày · chọn Giỗ âm hoặc Sinh nhật âm"
+      summaryHeadline={preview.headline}
+      summaryDetail={preview.detail}
       fontFamily={fontFamily}
     >
-      {savedHint ? <Text style={styles.saved}>Đã lưu</Text> : null}
+      {saveFailed ? (
+        <Text style={styles.saveFailed}>Chưa lưu được · thử lại</Text>
+      ) : savedHint ? (
+        <Text style={styles.saved}>Đã lưu</Text>
+      ) : null}
 
       <TextInput
         style={styles.input}
         value={text}
         onChangeText={setText}
         onBlur={() => {
-          void persist(text, isAnniversary);
+          void persist(text, isAnniversary, annivKind);
         }}
         placeholder="Nhập ghi chú cho ngày này…"
         placeholderTextColor={colors.inkFaint}
@@ -140,21 +210,41 @@ export function DayMemoCard({
 
       <View style={styles.row}>
         <Pressable
-          style={[styles.chip, isAnniversary && styles.chipOn]}
-          onPress={() => {
-            const next = !isAnniversary;
-            setIsAnniversary(next);
-            void persist(text, next);
-          }}
+          style={[
+            styles.chip,
+            isAnniversary && annivKind === 'gio' && styles.chipOn,
+          ]}
+          onPress={() => selectKind('gio')}
         >
-          <Text style={[styles.chipText, isAnniversary && styles.chipTextOn]}>
-            Đánh dấu giỗ / kỷ niệm
+          <Text
+            style={[
+              styles.chipText,
+              isAnniversary && annivKind === 'gio' && styles.chipTextOn,
+            ]}
+          >
+            Giỗ âm
+          </Text>
+        </Pressable>
+        <Pressable
+          style={[
+            styles.chip,
+            isAnniversary && annivKind === 'birthday' && styles.chipOn,
+          ]}
+          onPress={() => selectKind('birthday')}
+        >
+          <Text
+            style={[
+              styles.chipText,
+              isAnniversary && annivKind === 'birthday' && styles.chipTextOn,
+            ]}
+          >
+            Sinh nhật âm
           </Text>
         </Pressable>
         <Pressable
           style={styles.saveBtn}
           onPress={() => {
-            void persist(text, isAnniversary);
+            void persist(text, isAnniversary, annivKind);
           }}
         >
           <Text style={styles.saveText}>Lưu</Text>
@@ -180,6 +270,13 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginBottom: 4,
   },
+  saveFailed: {
+    fontSize: 11,
+    color: colors.crimson,
+    fontWeight: '700',
+    textAlign: 'right',
+    marginBottom: 4,
+  },
   input: {
     minHeight: 72,
     borderWidth: 1,
@@ -202,7 +299,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     backgroundColor: colors.paper,
   },
   chipOn: {
@@ -213,6 +310,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: colors.inkMuted,
+    textAlign: 'center',
   },
   chipTextOn: {
     color: colors.crimson,

@@ -10,9 +10,20 @@ export type LunarAnniv = {
   leapMonth: boolean;
 };
 
+export type AnnivKind = 'gio' | 'birthday';
+
+const BIRTHDAY_RE =
+  /sinh nhật|sn âm|birthday|thọ|mừng tuổi|tết thọ|ngày sinh/i;
+
+export function inferAnnivKind(text: string): AnnivKind {
+  return BIRTHDAY_RE.test(text.trim()) ? 'birthday' : 'gio';
+}
+
 export type DayMemo = {
   text: string;
   isAnniversary: boolean;
+  /** Explicit giỗ vs sinh nhật âm — falls back to text inference when missing. */
+  annivKind?: AnnivKind;
   updatedAt: string;
   /** Lunar giỗ intent — used for yearly reminders & month marks. */
   lunar?: LunarAnniv;
@@ -35,10 +46,14 @@ function lunarFromSolarKey(dateKey: string): LunarAnniv | undefined {
 
 /** Ensure anniversary memos carry lunar fields (migration for older saves). */
 export function hydrateMemo(dateKey: string, memo: DayMemo): DayMemo {
-  if (!memo.isAnniversary) return memo;
-  if (memo.lunar?.month && memo.lunar?.day) return memo;
+  let next = memo;
+  if (memo.isAnniversary && !memo.annivKind) {
+    next = { ...next, annivKind: inferAnnivKind(memo.text) };
+  }
+  if (!next.isAnniversary) return next;
+  if (next.lunar?.month && next.lunar?.day) return next;
   const lunar = lunarFromSolarKey(dateKey);
-  return lunar ? { ...memo, lunar } : memo;
+  return lunar ? { ...next, lunar } : next;
 }
 
 export async function loadMemoMap(): Promise<Record<string, DayMemo>> {
@@ -73,22 +88,33 @@ export async function saveMemo(
   dateKey: string,
   text: string,
   isAnniversary: boolean,
+  annivKind?: AnnivKind,
 ): Promise<DayMemo> {
   const map = await loadMemoMap();
   const trimmed = text.trim();
   if (!trimmed && !isAnniversary) {
     delete map[dateKey];
-    await AsyncStorage.setItem(KEY, JSON.stringify(map));
+    try {
+      await AsyncStorage.setItem(KEY, JSON.stringify(map));
+    } catch (e) {
+      throw e instanceof Error ? e : new Error('saveMemo failed');
+    }
     return { text: '', isAnniversary: false, updatedAt: new Date().toISOString() };
   }
+  const kind = isAnniversary ? (annivKind ?? inferAnnivKind(trimmed)) : undefined;
   const next: DayMemo = {
     text: trimmed,
     isAnniversary,
+    ...(kind ? { annivKind: kind } : {}),
     updatedAt: new Date().toISOString(),
     ...(isAnniversary ? { lunar: lunarFromSolarKey(dateKey) } : {}),
   };
   map[dateKey] = next;
-  await AsyncStorage.setItem(KEY, JSON.stringify(map));
+  try {
+    await AsyncStorage.setItem(KEY, JSON.stringify(map));
+  } catch (e) {
+    throw e instanceof Error ? e : new Error('saveMemo failed');
+  }
   return next;
 }
 

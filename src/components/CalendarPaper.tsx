@@ -1,15 +1,16 @@
-import { type ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   kiengDigestLine,
   nenDigestLine,
+  posterSummaryBar,
   statusDigestLine,
 } from '../lib/dayDigest';
 import type { CalendarDay } from '../lunar/today';
 import { colors } from '../theme/tokens';
 import { CornerOrnament } from './CornerOrnament';
-import { HoangHourChips } from './HoangHourChips';
+import type { FlowerFace } from './HoaBeNgoan';
 import { PaperTexture } from './PaperTexture';
+import { PosterBrandWhisper } from './PosterBrandWhisper';
 
 type Fonts = {
   display?: string;
@@ -18,16 +19,22 @@ type Fonts = {
   bodyMedium?: string;
 };
 
+export type PosterBrandWhisperProps = {
+  line: string;
+  face?: FlowerFace;
+  inkColor?: string;
+  fontFamily?: string;
+};
+
 type Props = {
   day: CalendarDay;
   fonts?: Fonts;
   /** Stretch to fill parent (home hero). */
   fill?: boolean;
-  /** Home hero — today digest inside the paper. */
+  /** Home hero — share-ready poster with today’s conclusion only. */
   compact?: boolean;
-  /** Stamps in the side margins beside the solar date. */
-  leftWing?: ReactNode;
-  rightWing?: ReactNode;
+  /** Tiny praise whisper in poster whitespace (when stamped). */
+  brandWhisper?: PosterBrandWhisperProps;
 };
 
 const QUALITY_COLOR: Record<CalendarDay['dayPathTone'], string> = {
@@ -40,15 +47,14 @@ const QUALITY_COLOR: Record<CalendarDay['dayPathTone'], string> = {
 
 /**
  * Core paper card — premium minimal.
- * `compact`: share-ready + today digest (status · nên/kiêng · giờ tốt).
+ * `compact`: poster layout — big date, nên/kiêng, one-line giờ + hướng.
  */
 export function CalendarPaper({
   day,
   fonts,
   fill,
   compact,
-  leftWing,
-  rightWing,
+  brandWhisper,
 }: Props) {
   const display = fonts?.display;
   const body = fonts?.body;
@@ -80,10 +86,11 @@ export function CalendarPaper({
       <View
         style={[
           styles.centerBlock,
-          fill && styles.centerBlockFill,
+          fill && !compact && styles.centerBlockFill,
           compact && styles.centerBlockCompact,
         ]}
       >
+        <View style={compact ? styles.posterTop : undefined}>
         {!compact ? (
           <>
             <Text
@@ -123,45 +130,43 @@ export function CalendarPaper({
           </>
         ) : (
           <View style={styles.weekdayWrapCompact}>
-            <View style={styles.weekdayGold} />
-            <View style={[styles.weekdayBar, styles.weekdayBarCompact]}>
-              <Text
-                style={[
-                  styles.weekdayText,
-                  bodyMed ? { fontFamily: bodyMed } : null,
-                ]}
-              >
-                {day.weekdayBanner}
-              </Text>
+            <View style={styles.weekdayRibbon}>
+              <View style={styles.weekdayGoldLine} />
+              <View style={[styles.weekdayBar, styles.weekdayBarCompact]}>
+                <Text
+                  style={[
+                    styles.weekdayText,
+                    styles.weekdayTextCompact,
+                    bodyMed ? { fontFamily: bodyMed } : null,
+                  ]}
+                >
+                  {day.weekdayBanner}
+                </Text>
+              </View>
+              <View style={styles.weekdayGoldLine} />
             </View>
-            <View style={styles.weekdayGold} />
           </View>
         )}
 
-        <View style={[styles.solarRowOuter, compact && styles.solarRowOuterCompact]}>
-          <View style={[styles.solarWing, styles.solarWingLeft]}>
-            {leftWing}
-          </View>
-          <View style={[styles.solarCluster, compact && styles.solarClusterCompact]}>
-            <Text
-              style={[
-                styles.solarDay,
-                compact && styles.solarDayCompact,
-                display ? { fontFamily: display } : null,
-              ]}
-            >
-              {day.solar.day}
-            </Text>
-            <View style={[styles.zhCol, compact && styles.zhColCompact]}>
-              {day.weekdayZh.split('').map((ch, i) => (
-                <Text key={`${ch}-${i}`} style={styles.zhChar}>
-                  {ch}
-                </Text>
-              ))}
-            </View>
-          </View>
-          <View style={[styles.solarWing, styles.solarWingRight]}>
-            {rightWing}
+        <View style={[styles.solarRow, compact && styles.solarRowCompact]}>
+          <Text
+            style={[
+              styles.solarDay,
+              compact && styles.solarDayCompact,
+              display ? { fontFamily: display } : null,
+            ]}
+          >
+            {day.solar.day}
+          </Text>
+          <View style={[styles.zhCol, compact && styles.zhColCompact]}>
+            {day.weekdayZh.split('').map((ch, i) => (
+              <Text
+                key={`${ch}-${i}`}
+                style={[styles.zhChar, compact && styles.zhCharCompact]}
+              >
+                {ch}
+              </Text>
+            ))}
           </View>
         </View>
 
@@ -176,6 +181,16 @@ export function CalendarPaper({
             >
               {statusDigestLine(day)}
             </Text>
+            {brandWhisper ? (
+              <View style={styles.brandInline}>
+                <PosterBrandWhisper
+                  line={brandWhisper.line}
+                  face={brandWhisper.face}
+                  inkColor={brandWhisper.inkColor}
+                  fontFamily={brandWhisper.fontFamily}
+                />
+              </View>
+            ) : null}
             <Text style={[styles.digestLine, body ? { fontFamily: body } : null]}>
               {nenDigestLine(day)}
             </Text>
@@ -188,30 +203,19 @@ export function CalendarPaper({
             >
               {kiengDigestLine(day)}
             </Text>
-            <Text style={[styles.lunarMonthCompact, body ? { fontFamily: body } : null]}>
-              Âm {day.lunar.day}/{day.lunar.month}
-              {day.lunar.leapMonth ? ' nhuận' : ''}
-            </Text>
           </View>
         ) : null}
+        </View>
       </View>
 
       <View style={[styles.footerBlock, compact && styles.footerBlockCompact]}>
-        {compact && day.hoangHours.length > 0 ? (
-          <View style={styles.hoangSection}>
+        {compact ? (
+          <View style={styles.summaryBar}>
             <Text
-              style={[
-                styles.hoangLabel,
-                bodyMed ? { fontFamily: bodyMed } : null,
-              ]}
+              style={[styles.summaryBarText, bodyMed ? { fontFamily: bodyMed } : null]}
             >
-              GIỜ HOÀNG ĐẠO
+              {posterSummaryBar(day)}
             </Text>
-            <HoangHourChips
-              hours={day.hoangHours}
-              size="sm"
-              fontFamily={bodyMed}
-            />
           </View>
         ) : null}
         <View style={[styles.canChiRow, compact && styles.canChiRowCompact]}>
@@ -253,8 +257,8 @@ const styles = StyleSheet.create({
   },
   paperCompact: {
     paddingHorizontal: 14,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingTop: 6,
+    paddingBottom: 10,
   },
   innerFrame: {
     ...StyleSheet.absoluteFill,
@@ -277,14 +281,14 @@ const styles = StyleSheet.create({
   canChiYear: {
     fontSize: 12,
     color: colors.crimsonDeep,
-    marginTop: 2,
+    marginTop: 1,
     letterSpacing: 1,
     fontWeight: '700',
   },
   solarMonth: {
     fontSize: 10,
     color: colors.inkFaint,
-    marginTop: 2,
+    marginTop: 1,
     letterSpacing: 0.5,
   },
   centerBlock: {
@@ -293,14 +297,23 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   centerBlockFill: {
-    flexGrow: 1,
+    flex: 1,
     justifyContent: 'center',
     marginTop: 0,
   },
   centerBlockCompact: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    marginTop: 0,
+    width: '100%',
+    marginTop: 10,
+    flexShrink: 0,
+    justifyContent: 'flex-start',
+  },
+  posterTop: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  brandInline: {
+    marginTop: 6,
+    marginBottom: 2,
   },
   lunarDay: {
     fontSize: 28,
@@ -313,9 +326,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weekdayWrapCompact: {
-    marginTop: 2,
-    width: '84%',
+    marginTop: 0,
     alignItems: 'center',
+    alignSelf: 'center',
+  },
+  weekdayRibbon: {
+    alignSelf: 'center',
+    maxWidth: '100%',
+  },
+  weekdayGoldLine: {
+    height: 1.5,
+    backgroundColor: colors.gold,
+    alignSelf: 'stretch',
   },
   weekdayGold: {
     width: '100%',
@@ -330,13 +352,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weekdayBarCompact: {
-    paddingVertical: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    width: undefined,
+    alignSelf: 'center',
   },
   weekdayText: {
     color: colors.white,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 1.2,
+  },
+  weekdayTextCompact: {
+    letterSpacing: 0.8,
   },
   qualityLine: {
     marginTop: 10,
@@ -352,44 +380,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.9,
     fontWeight: '500',
   },
-  lunarMonthCompact: {
-    marginTop: 4,
-    fontSize: 9,
-    color: colors.inkFaint,
-    letterSpacing: 0.3,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  solarRowOuter: {
+  solarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
     marginTop: 4,
-  },
-  solarRowOuterCompact: {
-    marginTop: 2,
-  },
-  solarWing: {
-    flex: 1,
-    minWidth: 52,
-    justifyContent: 'center',
-  },
-  solarWingLeft: {
-    alignItems: 'flex-end',
-    paddingRight: 4,
-  },
-  solarWingRight: {
-    alignItems: 'flex-start',
-    paddingLeft: 4,
-  },
-  solarCluster: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexShrink: 0,
     gap: 14,
   },
-  solarClusterCompact: {
-    gap: 10,
+  solarRowCompact: {
+    marginTop: 8,
+    gap: 12,
   },
   solarDay: {
     fontSize: 108,
@@ -398,8 +397,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   solarDayCompact: {
-    fontSize: 72,
-    lineHeight: 78,
+    fontSize: 92,
+    lineHeight: 98,
   },
   zhCol: {
     paddingTop: 12,
@@ -408,7 +407,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   zhColCompact: {
-    paddingTop: 8,
+    paddingTop: 10,
   },
   zhChar: {
     fontSize: 15,
@@ -416,11 +415,16 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: '600',
   },
+  zhCharCompact: {
+    fontSize: 13,
+    lineHeight: 17,
+    color: colors.inkMuted,
+  },
   digestBlock: {
-    marginTop: 4,
+    marginTop: 10,
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 2,
+    paddingHorizontal: 4,
   },
   statusLine: {
     fontSize: 11,
@@ -429,7 +433,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   digestLine: {
-    marginTop: 3,
+    marginTop: 4,
     fontSize: 10,
     lineHeight: 14,
     color: colors.ink,
@@ -443,20 +447,25 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   footerBlockCompact: {
-    gap: 4,
     flexShrink: 0,
+    gap: 0,
   },
-  hoangSection: {
+  summaryBar: {
     width: '100%',
-    paddingTop: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(196, 30, 58, 0.28)',
+    marginBottom: 6,
   },
-  hoangLabel: {
-    fontSize: 8,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-    color: colors.crimsonSoft,
-    marginBottom: 4,
+  summaryBarText: {
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: '700',
+    color: colors.crimsonDeep,
     textAlign: 'center',
+    letterSpacing: 0.15,
   },
   canChiRow: {
     flexDirection: 'row',
@@ -471,7 +480,8 @@ const styles = StyleSheet.create({
   },
   canChiRowCompact: {
     marginTop: 0,
-    paddingTop: 6,
+    paddingTop: 0,
+    borderTopWidth: 0,
   },
   canChiItem: {
     fontSize: 10,

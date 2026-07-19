@@ -4,6 +4,7 @@ import { getCalendarDayForSolar } from '../lunar/today';
 import { getVietnamSolarToday } from '../lunar/vietnamTime';
 import { loadMemoMap, type DayMemo } from './localMemos';
 import { dDayLabel, daysBetween, listUpcomingGio } from './gioSchedule';
+import type { AnnivKind } from './localMemos';
 
 export type LunarEventKind = 'ram' | 'mung' | 'gio' | 'birthday';
 
@@ -14,16 +15,10 @@ export type UpcomingLunarEvent = {
   solar: SolarDate;
   /** Personal saved memo — sort tie-break toward top. */
   personal: boolean;
+  annivKind?: AnnivKind;
 };
 
 const SCAN_DAYS = 120;
-
-const BIRTHDAY_RE =
-  /sinh nhật|sn âm|birthday|thọ|mừng tuổi|tết thọ|ngày sinh/i;
-
-export function isLunarBirthdayMemo(text: string): boolean {
-  return BIRTHDAY_RE.test(text.trim());
-}
 
 function scanRamMung(from: SolarDate, max = 6): UpcomingLunarEvent[] {
   const out: UpcomingLunarEvent[] = [];
@@ -48,18 +43,33 @@ function scanRamMung(from: SolarDate, max = 6): UpcomingLunarEvent[] {
   return out;
 }
 
+function formatPersonalLabel(raw: string, kind: AnnivKind): string {
+  const t = raw.trim();
+  const birthday = kind === 'birthday';
+  if (!t || t === 'Giỗ âm lịch' || t === 'Sinh nhật âm') {
+    return birthday ? 'Sinh nhật âm' : 'Giỗ âm lịch';
+  }
+  if (birthday) {
+    if (/^sinh nhật/i.test(t)) return t;
+    return `Sinh nhật âm · ${t}`;
+  }
+  if (/^giỗ\b/i.test(t)) return t;
+  return `Giỗ ${t}`;
+}
+
 function personalEventsFromMap(
   map: Record<string, DayMemo>,
   from: SolarDate,
 ): UpcomingLunarEvent[] {
-  return listUpcomingGio(map, from, 8).map((g) => {
-    const birthday = isLunarBirthdayMemo(g.label);
+  return listUpcomingGio(map, from, 12).map((g) => {
+    const birthday = g.annivKind === 'birthday';
     return {
       kind: birthday ? ('birthday' as const) : ('gio' as const),
-      label: birthday ? g.label : g.label,
+      label: formatPersonalLabel(g.label, g.annivKind),
       daysUntil: g.daysUntil,
       solar: g.solar,
       personal: true,
+      annivKind: g.annivKind,
     };
   });
 }
@@ -70,36 +80,36 @@ function eventSort(a: UpcomingLunarEvent, b: UpcomingLunarEvent): number {
   return a.label.localeCompare(b.label, 'vi');
 }
 
-/** Personal giỗ / sinh nhật âm + Rằm / Mùng Một — nearest first. */
+/** Personal giỗ / sinh nhật âm first, then Rằm / Mùng Một. */
 export async function listUpcomingLunarEvents(
   limit = 4,
 ): Promise<UpcomingLunarEvent[]> {
   const from = getVietnamSolarToday();
   const map = await loadMemoMap();
-  const personal = personalEventsFromMap(map, from);
-  const ritual = scanRamMung(from, 6);
-  const merged = [...personal, ...ritual].sort(eventSort);
+  const personal = personalEventsFromMap(map, from).sort(eventSort);
+  const ritual = scanRamMung(from, 8).sort(eventSort);
 
   const picked: UpcomingLunarEvent[] = [];
   const seen = new Set<string>();
 
-  // Ensure up to 2 personal events surface when saved.
-  for (const p of personal.slice(0, 2)) {
-    const key = `${p.kind}-${p.label}-${p.solar.year}-${p.solar.month}-${p.solar.day}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    picked.push(p);
-  }
-
-  for (const e of merged) {
-    if (picked.length >= limit) break;
+  const add = (e: UpcomingLunarEvent) => {
     const key = `${e.kind}-${e.label}-${e.solar.year}-${e.solar.month}-${e.solar.day}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key)) return;
     seen.add(key);
     picked.push(e);
+  };
+
+  for (const p of personal) {
+    if (picked.length >= limit) break;
+    add(p);
   }
 
-  return picked.sort(eventSort).slice(0, limit);
+  for (const r of ritual) {
+    if (picked.length >= limit) break;
+    add(r);
+  }
+
+  return picked;
 }
 
 /** Nearest personal lunar anniversary (giỗ or sinh nhật âm). */

@@ -9,6 +9,8 @@ type Props = {
   fontFamily?: string;
   /** `sm` fits inside the paper card. */
   size?: 'sm' | 'md';
+  /** `grid` shows all slots without horizontal clip. */
+  layout?: 'scroll' | 'grid';
 };
 
 function formatHourRange(time: string): string {
@@ -19,9 +21,11 @@ export function HoangHourChips({
   hours,
   fontFamily,
   size = 'md',
+  layout = 'scroll',
 }: Props) {
   const nowH = getVietnamHour();
   const sm = size === 'sm';
+  const grid = layout === 'grid';
 
   if (!hours.length) {
     return <Text style={styles.empty}>—</Text>;
@@ -30,71 +34,80 @@ export function HoangHourChips({
   const nextIdx = findNextHoangIndex(hours, nowH);
   const chips = hours.slice(0, 6);
 
+  const chipNodes = chips.map((h, i) => {
+    const active = isHourActive(h.time, nowH);
+    const isNext = i === nextIdx && !active;
+    return (
+      <View
+        key={`${h.branch}-${h.time}`}
+        style={[
+          styles.chip,
+          sm && styles.chipSm,
+          grid && styles.chipGrid,
+          active && styles.chipActive,
+          isNext && styles.chipNext,
+        ]}
+      >
+        {isNext ? (
+          <Text
+            style={[
+              styles.badge,
+              sm && styles.badgeSm,
+              fontFamily ? { fontFamily } : null,
+            ]}
+          >
+            Tiếp theo
+          </Text>
+        ) : null}
+        {active ? (
+          <Text
+            style={[
+              styles.badge,
+              styles.badgeNow,
+              sm && styles.badgeSm,
+              fontFamily ? { fontFamily } : null,
+            ]}
+          >
+            Đang trong
+          </Text>
+        ) : null}
+        <Text
+          style={[
+            styles.time,
+            sm && styles.timeSm,
+            grid && styles.timeGrid,
+            (active || isNext) && styles.textActive,
+            fontFamily ? { fontFamily } : null,
+          ]}
+        >
+          {formatHourRange(h.time)}
+        </Text>
+        <Text
+          style={[
+            styles.branch,
+            sm && styles.branchSm,
+            grid && styles.branchGrid,
+            (active || isNext) && styles.textActive,
+            fontFamily ? { fontFamily } : null,
+          ]}
+        >
+          {h.branch}
+        </Text>
+      </View>
+    );
+  });
+
+  if (grid) {
+    return <View style={styles.grid}>{chipNodes}</View>;
+  }
+
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
     >
-      {chips.map((h, i) => {
-        const active = isHourActive(h.time, nowH);
-        const isNext = i === nextIdx && !active;
-        return (
-          <View
-            key={`${h.branch}-${h.time}`}
-            style={[
-              styles.chip,
-              sm && styles.chipSm,
-              active && styles.chipActive,
-              isNext && styles.chipNext,
-            ]}
-          >
-            {isNext ? (
-              <Text
-                style={[
-                  styles.badge,
-                  sm && styles.badgeSm,
-                  fontFamily ? { fontFamily } : null,
-                ]}
-              >
-                Tiếp theo
-              </Text>
-            ) : null}
-            {active ? (
-              <Text
-                style={[
-                  styles.badge,
-                  styles.badgeNow,
-                  sm && styles.badgeSm,
-                  fontFamily ? { fontFamily } : null,
-                ]}
-              >
-                Đang trong
-              </Text>
-            ) : null}
-            <Text
-              style={[
-                styles.time,
-                sm && styles.timeSm,
-                (active || isNext) && styles.textActive,
-                fontFamily ? { fontFamily } : null,
-              ]}
-            >
-              {formatHourRange(h.time)}
-            </Text>
-            <Text
-              style={[
-                styles.branch,
-                sm && styles.branchSm,
-                (active || isNext) && styles.textActive,
-                fontFamily ? { fontFamily } : null,
-              ]}
-            >
-              {h.branch}
-            </Text>
-          </View>
-        );
-      })}
+      {chipNodes}
     </ScrollView>
   );
 }
@@ -104,6 +117,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
     paddingVertical: 2,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingTop: 10,
   },
   chip: {
     borderWidth: 1,
@@ -117,6 +136,13 @@ const styles = StyleSheet.create({
     minWidth: 76,
     paddingHorizontal: 6,
     paddingVertical: 5,
+  },
+  chipGrid: {
+    width: '31%',
+    minWidth: 0,
+    flexGrow: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 7,
   },
   chipActive: {
     borderColor: colors.crimson,
@@ -151,6 +177,10 @@ const styles = StyleSheet.create({
   timeSm: {
     fontSize: 9,
   },
+  timeGrid: {
+    fontSize: 9,
+    lineHeight: 12,
+  },
   branch: {
     marginTop: 2,
     fontSize: 12,
@@ -158,6 +188,10 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   branchSm: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  branchGrid: {
     fontSize: 11,
     marginTop: 1,
   },

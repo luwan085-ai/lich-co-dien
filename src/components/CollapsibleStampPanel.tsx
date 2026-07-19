@@ -36,8 +36,11 @@ type Props = {
   panelId: PanelId;
   title: string;
   sub: string;
-  /** Shown on the collapsed strip */
+  /** Shown on the collapsed strip (single line fallback). */
   summary?: string;
+  /** Two-line collapsed preview — headline + detail. */
+  summaryHeadline?: string;
+  summaryDetail?: string;
   fontFamily?: string;
   children: ReactNode;
 };
@@ -47,6 +50,8 @@ export function CollapsibleStampPanel({
   title,
   sub,
   summary,
+  summaryHeadline,
+  summaryDetail,
   fontFamily,
   children,
 }: Props) {
@@ -89,9 +94,23 @@ export function CollapsibleStampPanel({
           <Text style={[styles.stripTitle, fontFamily ? { fontFamily } : null]}>
             {title}
           </Text>
-          <Text style={styles.stripSub} numberOfLines={1}>
-            {summary || sub}
-          </Text>
+          {summaryHeadline ? (
+            <>
+              <Text
+                style={[styles.stripHeadline, fontFamily ? { fontFamily } : null]}
+                numberOfLines={1}
+              >
+                {summaryHeadline}
+              </Text>
+              <Text style={styles.stripSub} numberOfLines={1}>
+                {summaryDetail ?? summary ?? sub}
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.stripSub} numberOfLines={2}>
+              {summary || sub}
+            </Text>
+          )}
         </View>
         <Ionicons name="chevron-down" size={18} color={colors.inkFaint} />
       </Pressable>
@@ -175,6 +194,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.crimson,
     letterSpacing: 0.6,
+  },
+  stripHeadline: {
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.ink,
+    letterSpacing: 0.1,
   },
   stripSub: {
     marginTop: 2,

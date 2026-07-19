@@ -11,6 +11,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { ProfileMoodSection } from '../components/ProfileMoodSection';
 import { ProfilePraiseSection } from '../components/ProfilePraiseSection';
 import { storeConfig } from '../config/store';
 import {
@@ -291,6 +292,14 @@ export function ProfileScreen({
             );
           })}
         </View>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Đóng dấu cảm xúc</Text>
+        <Text style={styles.line}>
+          Chọn cảm xúc hôm nay — ghi lại tâm trạng trên tờ lịch của bạn.
+        </Text>
+        <ProfileMoodSection fontFamily={fontFamily} />
       </View>
 
       <View style={styles.card}>

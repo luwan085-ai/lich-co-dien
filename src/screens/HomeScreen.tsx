@@ -11,7 +11,6 @@ import { CalendarMount } from '../components/CalendarMount';
 import { DayCommitmentCard } from '../components/DayCommitmentCard';
 import { DayMemoCard } from '../components/DayMemoCard';
 import { DayPulseCompact } from '../components/DayPulseCompact';
-import { MoodStampPicker } from '../components/MoodStampPicker';
 import { ShareDayCard } from '../components/ShareDayCard';
 import { UpcomingLunarCard } from '../components/UpcomingLunarCard';
 import {
@@ -19,7 +18,6 @@ import {
   type TearablePaperHandle,
 } from '../components/TearablePaper';
 import { WidgetTray } from '../components/WidgetTray';
-import { VnTeacherStamp } from '../components/VnTeacherStamp';
 import { useCalendarPages } from '../hooks/useCalendarPages';
 import { resolveFlowerFace } from '../lib/flowerFace';
 import { shareCapturedView } from '../lib/shareDay';
@@ -73,7 +71,6 @@ export function HomeScreen({
     goNext,
     goPrev,
     goToday,
-    setMoodStamp,
     setPraiseStamp,
   } = useCalendarPages({ selected, onChangeSelected });
 
@@ -84,7 +81,6 @@ export function HomeScreen({
     bodyMedium: fonts?.bodyMedium,
   };
 
-  const moodStamped = MOOD_STAMPS.find((m) => m.id === pageRecord?.moodStamp);
   const praiseStamped = PRAISE_STAMPS.find(
     (m) => m.id === pageRecord?.praiseStamp,
   );
@@ -92,6 +88,15 @@ export function HomeScreen({
     pageRecord?.moodStamp,
     currentDay.dayPathTone,
   );
+
+  const brandWhisper = praiseStamped
+    ? {
+        line: praiseStamped.lines[0] ?? praiseStamped.labelVi,
+        face: flowerFace,
+        inkColor,
+        fontFamily: fonts?.stamp ?? fonts?.bodySemi,
+      }
+    : undefined;
 
   const onShare = async () => {
     const ok = await shareCapturedView(
@@ -101,29 +106,6 @@ export function HomeScreen({
     if (!ok) {
       Alert.alert('Chưa chia sẻ được', 'Thử lại trên thiết bị thật.');
     }
-  };
-
-  const paperWings = {
-    leftWing: praiseStamped ? (
-      <VnTeacherStamp
-        praiseId={praiseStamped.id}
-        size="sm"
-        inkSeed={pageRecord?.praiseInkSeed ?? 42}
-        rotate={praiseStamped.tilt}
-        fontFamily={fonts?.stamp ?? fonts?.bodySemi}
-        face={flowerFace}
-        inkColor={inkColor}
-      />
-    ) : null,
-    rightWing: moodStamped ? (
-      <View
-        style={[styles.pageStampMood, { borderColor: moodStamped.color }]}
-      >
-        <Text style={[styles.pageStampChar, { color: moodStamped.color }]}>
-          {moodStamped.char}
-        </Text>
-      </View>
-    ) : null,
   };
 
   return (
@@ -180,8 +162,7 @@ export function HomeScreen({
               peekNext={peekDay('next')}
               peekPrev={peekDay('prev')}
               fonts={paperFonts}
-              leftWing={paperWings.leftWing}
-              rightWing={paperWings.rightWing}
+              brandWhisper={brandWhisper}
               onTornNext={goNext}
               onTornPrev={goPrev}
               onTornToday={goToday}
@@ -252,14 +233,6 @@ export function HomeScreen({
           </View>
 
           <View style={styles.block}>
-            <MoodStampPicker
-              selected={pageRecord?.moodStamp}
-              fontFamily={fonts?.bodySemi}
-              onPick={setMoodStamp}
-            />
-          </View>
-
-          <View style={styles.block}>
             <Text style={[styles.utilKicker, fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null]}>
               TIỆN ÍCH HÀNG NGÀY
             </Text>
@@ -307,19 +280,6 @@ const styles = StyleSheet.create({
   },
   tapeTL: { top: 8, left: -10, transform: [{ rotate: '-14deg' }] },
   tapeTR: { top: 12, right: -12, transform: [{ rotate: '12deg' }] },
-  pageStampMood: {
-    width: 44,
-    height: 44,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(251,246,236,0.75)',
-    transform: [{ rotate: '-10deg' }],
-  },
-  pageStampChar: {
-    fontSize: 22,
-    fontWeight: '800',
-  },
   toolRow: {
     marginTop: 4,
     flexDirection: 'row',

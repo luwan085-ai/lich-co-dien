@@ -22,7 +22,7 @@ const KIND_DOT: Record<UpcomingLunarEvent['kind'], string> = {
   birthday: '#7C3AED',
 };
 
-/** Sắp tới — Rằm, Mùng Một, giỗ in one glance. */
+/** Sắp tới — giỗ cá nhân first, then Rằm / Mùng Một. */
 export function UpcomingLunarCard({
   fontFamily,
   refreshKey = 0,
@@ -70,7 +70,11 @@ export function UpcomingLunarCard({
         >
           <View style={[styles.dot, { backgroundColor: KIND_DOT[item.kind] }]} />
           <Text
-            style={[styles.label, fontFamily ? { fontFamily } : null]}
+            style={[
+              styles.label,
+              item.personal && styles.labelPersonal,
+              fontFamily ? { fontFamily } : null,
+            ]}
             numberOfLines={1}
           >
             {item.label}
@@ -129,6 +133,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: colors.ink,
+  },
+  labelPersonal: {
+    color: colors.crimsonDeep,
   },
   dday: {
     fontSize: 11,

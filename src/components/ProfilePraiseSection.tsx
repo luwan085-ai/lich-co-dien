@@ -8,7 +8,7 @@ import { getCalendarDayForSolar } from '../lunar/today';
 import { solarKey } from '../lunar/solar';
 import { getVietnamHour, getVietnamSolarToday } from '../lunar/vietnamTime';
 import { usePremium } from '../monetization/premium';
-import type { Praise } from '../types/mood';
+import type { Mood, Praise } from '../types/mood';
 
 type Props = {
   fontFamily?: string;
@@ -21,6 +21,7 @@ export function ProfilePraiseSection({ fontFamily, stampFont }: Props) {
   const inkColor = stampInkForSkin(stampSkin);
   const todayKey = solarKey(getVietnamSolarToday());
   const [praiseStamp, setPraiseStamp] = useState<Praise | undefined>();
+  const [moodStamp, setMoodStamp] = useState<Mood | undefined>();
   const [inkSeed, setInkSeed] = useState<number | undefined>();
   const [hourTick, setHourTick] = useState(0);
 
@@ -29,6 +30,7 @@ export function ProfilePraiseSection({ fontFamily, stampFont }: Props) {
     void loadPageMap().then((map) => {
       if (!alive) return;
       setPraiseStamp(map[todayKey]?.praiseStamp);
+      setMoodStamp(map[todayKey]?.moodStamp);
       setInkSeed(map[todayKey]?.praiseInkSeed);
     });
     return () => {
@@ -53,7 +55,7 @@ export function ProfilePraiseSection({ fontFamily, stampFont }: Props) {
     return getCalendarDayForSolar(getVietnamSolarToday(), getVietnamHour());
   }, [hourTick]);
 
-  const flowerFace = resolveFlowerFace(undefined, day.dayPathTone);
+  const flowerFace = resolveFlowerFace(moodStamp, day.dayPathTone);
 
   const onPick = useCallback(
     async (praise: Praise, seed: number) => {
