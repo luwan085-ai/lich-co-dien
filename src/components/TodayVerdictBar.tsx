@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { CalendarDay } from '../lunar/today';
+import { kiengFallbackForTone, nenFallbackForTone } from '../lib/dayActivities';
 import { colors } from '../theme/tokens';
 
 type Props = {
@@ -33,8 +34,8 @@ function judgmentHeadline(day: CalendarDay): string {
 export function TodayVerdictBar({ day, fontFamily }: Props) {
   const tone = TONE[day.dayPathTone];
   const head = judgmentHeadline(day);
-  const nen = joinShort(day.shouldDo, 'khai trương, xuất hành');
-  const kieng = joinShort(day.avoidDo, 'quyết định vội');
+  const nen = joinShort(day.shouldDo, nenFallbackForTone(day.dayPathTone));
+  const kieng = joinShort(day.avoidDo, kiengFallbackForTone(day.dayPathTone));
 
   return (
     <View style={styles.wrap}>

@@ -1,5 +1,6 @@
 import type { CalendarDay } from '../lunar/today';
 import { findNextHoangHour } from './hoangHours';
+import { kiengFallbackForTone, nenFallbackForTone } from './dayActivities';
 import { travelHintForDay } from './travelDirection';
 
 function joinShort(items: string[], fallback: string, max = 2): string {
@@ -8,12 +9,12 @@ function joinShort(items: string[], fallback: string, max = 2): string {
 }
 
 export function nenDigestLine(day: CalendarDay): string {
-  const items = joinShort(day.shouldDo, 'khai trương, xuất hành');
+  const items = joinShort(day.shouldDo, nenFallbackForTone(day.dayPathTone));
   return `Nên: ${items.replace(/, /g, ' · ')}`;
 }
 
 export function kiengDigestLine(day: CalendarDay): string {
-  const items = joinShort(day.avoidDo, 'quyết định vội');
+  const items = joinShort(day.avoidDo, kiengFallbackForTone(day.dayPathTone));
   return `Kiêng: ${items.replace(/, /g, ' · ')}`;
 }
 

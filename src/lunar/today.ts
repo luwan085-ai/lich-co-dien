@@ -13,6 +13,7 @@ import {
 } from './labels';
 import type { SolarDate } from './solar';
 import { getVietnamSolarToday } from './vietnamTime';
+import { resolveDayActivities } from '../lib/dayActivities';
 
 export type HoangHour = {
   branch: string;
@@ -120,12 +121,12 @@ export function getCalendarDayForSolar(
   const leap = analysis.lunar.leapMonth ? ' (Nhuận)' : '';
   const monthName = lunarMonthName(analysis.lunar.month);
 
-  const shouldDo = [
+  const rawShould = [
     ...(display.recommendations.should ?? []),
     ...((analysis as { nen?: string[] }).nen ?? []),
   ].filter((v, i, arr) => Boolean(v) && arr.indexOf(v) === i);
 
-  const avoidDo = [
+  const rawAvoid = [
     ...(display.recommendations.avoid ?? []),
     ...((analysis as { kieng?: string[] }).kieng ?? []),
   ].filter((v, i, arr) => Boolean(v) && arr.indexOf(v) === i);
@@ -134,6 +135,8 @@ export function getCalendarDayForSolar(
     String(display.quality ?? analysis.quality ?? 'neutral'),
     Boolean(display.hoangDao.isGoodDay),
   );
+
+  const { shouldDo, avoidDo } = resolveDayActivities(rawShould, rawAvoid, tone);
 
   const favorable =
     shouldDo.length > 0
@@ -175,8 +178,8 @@ export function getCalendarDayForSolar(
     solarMonthLine: `THÁNG ${solar.month} / ${solarMonthEn(solar.month)}`,
     hoangHours: display.hoangDao.hours ?? [],
     favorable,
-    shouldDo: shouldDo.slice(0, 6),
-    avoidDo: avoidDo.slice(0, 6),
+    shouldDo,
+    avoidDo,
     dayPathLabel: pathLabel,
     dayPathTone: tone,
     qualityLabel,
