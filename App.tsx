@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
 import { Mali_700Bold } from '@expo-google-fonts/mali';
 import {
   NotoSerif_400Regular_Italic,
@@ -43,6 +44,7 @@ function AppShell() {
   );
   const [showSteps, setShowSteps] = useState(false);
   const [showGioList, setShowGioList] = useState(false);
+  const [memoRefreshKey, setMemoRefreshKey] = useState(0);
   const todayRef = useRef<SolarDate>(getVietnamSolarToday());
 
   useEffect(() => {
@@ -59,6 +61,33 @@ function AppShell() {
         // Storage / notifications can fail on web or denied perms
       }
     })();
+  }, []);
+
+  const openFromNotification = (data: Record<string, unknown> | undefined) => {
+    if (!data || data.kind !== 'gio') return;
+    const solar = data.solar as SolarDate | undefined;
+    if (!solar?.year || !solar.month || !solar.day) return;
+    setSelected(solar);
+    setTab('today');
+    setShowSteps(false);
+    setShowGioList(false);
+  };
+
+  useEffect(() => {
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (!response) return;
+      openFromNotification(
+        response.notification.request.content.data as Record<string, unknown>,
+      );
+    });
+    const sub = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        openFromNotification(
+          response.notification.request.content.data as Record<string, unknown>,
+        );
+      },
+    );
+    return () => sub.remove();
   }, []);
 
   /** When VN calendar day rolls (or app returns from background), refresh “today”. */
@@ -146,6 +175,7 @@ function AppShell() {
             selected={selected}
             onChangeSelected={setSelected}
             onOpenGioList={() => setShowGioList(true)}
+            onMemoChanged={() => setMemoRefreshKey((n) => n + 1)}
           />
         ) : null}
         {!showSteps && !showGioList && tab === 'month' ? (
@@ -153,6 +183,7 @@ function AppShell() {
             fontFamily={fonts?.bodySemi}
             displayFont={fonts?.display}
             selected={selected}
+            memoRefreshKey={memoRefreshKey}
             onSelectDay={(day) => {
               setSelected(day);
               setTab('today');

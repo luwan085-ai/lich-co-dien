@@ -43,6 +43,7 @@ type Props = {
   selected: SolarDate;
   onChangeSelected: (d: SolarDate) => void;
   onOpenGioList?: () => void;
+  onMemoChanged?: () => void;
 };
 
 export function HomeScreen({
@@ -50,6 +51,7 @@ export function HomeScreen({
   selected,
   onChangeSelected,
   onOpenGioList,
+  onMemoChanged,
 }: Props) {
   const tearRef = useRef<TearablePaperHandle>(null);
   const shareRef = useRef<View>(null);
@@ -228,7 +230,10 @@ export function HomeScreen({
               dateKey={selectedKey}
               fontFamily={fonts?.bodySemi}
               gioRefreshKey={gioTick}
-              onGioChanged={() => setGioTick((n) => n + 1)}
+              onGioChanged={() => {
+                setGioTick((n) => n + 1);
+                onMemoChanged?.();
+              }}
             />
           </View>
 

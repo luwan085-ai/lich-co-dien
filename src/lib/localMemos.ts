@@ -139,5 +139,18 @@ export function mapHasGioOnLunar(
   map: Record<string, DayMemo>,
   lunar: LunarAnniv,
 ): boolean {
-  return Object.values(map).some((m) => memoMatchesLunar(m, lunar));
+  return annivKindOnLunar(map, lunar) !== null;
+}
+
+/** Giỗ vs sinh nhật âm for a lunar day (first matching memo wins). */
+export function annivKindOnLunar(
+  map: Record<string, DayMemo>,
+  lunar: LunarAnniv,
+): AnnivKind | null {
+  for (const [key, raw] of Object.entries(map)) {
+    const memo = hydrateMemo(key, raw);
+    if (!memoMatchesLunar(memo, lunar)) continue;
+    return memo.annivKind ?? inferAnnivKind(memo.text);
+  }
+  return null;
 }

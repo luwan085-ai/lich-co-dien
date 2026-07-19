@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MonthYearPicker } from '../components/MonthYearPicker';
-import { loadMemoMap, mapHasGioOnLunar, type DayMemo } from '../lib/localMemos';
+import { loadMemoMap, annivKindOnLunar, type DayMemo } from '../lib/localMemos';
 import { loadLastVisit, markVisitToday } from '../lib/visits';
 import { getMonthGrid } from '../lunar/today';
 import { solarKey, type SolarDate } from '../lunar/solar';
@@ -13,6 +13,7 @@ type Props = {
   fontFamily?: string;
   displayFont?: string;
   selected?: SolarDate;
+  memoRefreshKey?: number;
   onSelectDay: (day: SolarDate) => void;
 };
 
@@ -30,6 +31,7 @@ export function MonthCalendarScreen({
   fontFamily,
   displayFont,
   selected,
+  memoRefreshKey = 0,
   onSelectDay,
 }: Props) {
   const [today, setToday] = useState(() => getVietnamSolarToday());
@@ -63,7 +65,7 @@ export function MonthCalendarScreen({
     return () => {
       alive = false;
     };
-  }, [cursor.year, cursor.month, selected?.day, selected?.month, selected?.year]);
+  }, [cursor.year, cursor.month, selected?.day, selected?.month, selected?.year, memoRefreshKey]);
 
   useEffect(() => {
     let alive = true;
@@ -159,13 +161,12 @@ export function MonthCalendarScreen({
           const key = solarKey(cell.solar);
           const memo = memos[key];
           const hasMemo = Boolean(memo?.text);
-          const isGio =
-            Boolean(memo?.isAnniversary) ||
-            mapHasGioOnLunar(memos, {
-              month: cell.lunarMonth,
-              day: cell.lunarDay,
-              leapMonth: cell.leapMonth,
-            });
+          const lunarAnniv = {
+            month: cell.lunarMonth,
+            day: cell.lunarDay,
+            leapMonth: cell.leapMonth,
+          };
+          const annivKind = annivKindOnLunar(memos, lunarAnniv);
           const isSelected =
             !!selected &&
             selected.year === cell.solar.year &&
@@ -178,7 +179,8 @@ export function MonthCalendarScreen({
                 styles.cell,
                 cell.isToday && styles.cellToday,
                 isSelected && styles.cellSelected,
-                isGio && styles.cellGio,
+                annivKind === 'gio' && styles.cellGio,
+                annivKind === 'birthday' && styles.cellBirthday,
               ]}
               onPress={() => onSelectDay(cell.solar)}
             >
@@ -196,8 +198,13 @@ export function MonthCalendarScreen({
                 <View
                   style={[styles.dot, { backgroundColor: DOT[cell.tone] }]}
                 />
-                {isGio ? <Text style={styles.gioMark}>吉</Text> : null}
-                {hasMemo && !isGio ? <View style={styles.memoDot} /> : null}
+                {annivKind === 'gio' ? (
+                  <Text style={styles.gioMark}>吉</Text>
+                ) : null}
+                {annivKind === 'birthday' ? (
+                  <Text style={styles.birthdayMark}>寿</Text>
+                ) : null}
+                {hasMemo && !annivKind ? <View style={styles.memoDot} /> : null}
               </View>
             </Pressable>
           );
@@ -207,7 +214,8 @@ export function MonthCalendarScreen({
       <View style={styles.legend}>
         <LegendDot color={DOT.great} label="Hoàng / Cát" />
         <LegendDot color={DOT.neutral} label="Bình" />
-        <LegendDot color={colors.crimson} label="Giỗ / ghi chú" />
+        <LegendDot color={colors.crimson} label="Giỗ âm" />
+        <LegendDot color={colors.goldDeep} label="Sinh nhật" />
       </View>
 
       <MonthYearPicker
@@ -327,6 +335,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: colors.crimson,
   },
+  cellBirthday: {
+    borderBottomWidth: 2,
+    borderBottomColor: colors.goldDeep,
+  },
   solarDay: {
     fontSize: 15,
     fontWeight: '700',
@@ -367,9 +379,16 @@ const styles = StyleSheet.create({
     color: colors.crimson,
     lineHeight: 11,
   },
+  birthdayMark: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: colors.goldDeep,
+    lineHeight: 11,
+  },
   legend: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 10,
     marginTop: 14,
     paddingHorizontal: 4,
   },
