@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Lịch Cổ Điển",
-    "slug": "lich-co-dien",
+    "slug": "day-vn",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,11 @@
     "android": {
       "package": "vn.lichcodien.app",
       "permissions": [
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#FDFBF7",
@@ -38,7 +42,7 @@
     "extra": {
       "privacyPolicyUrl": "",
       "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+        "projectId": "0a25c992-a092-4a16-ac3b-dd2abb28cec9"
       }
     },
     "plugins": [
@@ -51,6 +55,7 @@
           "color": "#8B1520"
         }
       ]
-    ]
+    ],
+    "owner": "dj-cajuns-team"
   }
 }
