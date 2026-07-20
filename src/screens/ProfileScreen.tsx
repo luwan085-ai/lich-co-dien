@@ -27,6 +27,11 @@ import {
   type GioAdvanceDays,
 } from '../lib/gioSchedule';
 import {
+  clampAdvanceForTier,
+  FREE_ANNIV_LIMIT,
+  isAdvanceAllowed,
+} from '../lib/gioLimits';
+import {
   loadRamNotifEnabled,
   toggleRamNotifications,
 } from '../lib/ramNotifications';
@@ -39,7 +44,6 @@ import { colors, spacing } from '../theme/tokens';
 type Props = {
   fontFamily?: string;
   stampFont?: string;
-  onOpenSteps: () => void;
   onOpenGioList: () => void;
 };
 
@@ -48,6 +52,13 @@ const SKINS: { id: StampSkin; label: string; premium?: boolean }[] = [
   { id: 'gold', label: 'Vàng Premium', premium: true },
   { id: 'tape', label: 'Băng keo dán', premium: true },
 ];
+
+const PREMIUM_BENEFITS = [
+  'Giỗ & sinh nhật âm không giới hạn',
+  'Nhắc trước 1/3/7 ngày',
+  'Không quảng cáo',
+  'Ghim widget & da giấy Premium',
+] as const;
 
 const PRIVACY_BODY = `Lịch Cổ Điển ưu tiên lưu cục bộ trên máy bạn.
 
@@ -61,13 +72,12 @@ Không thu thập hồ sơ cá nhân để bán. Cặp số may mắn chỉ mang
 export function ProfileScreen({
   fontFamily,
   stampFont,
-  onOpenSteps,
   onOpenGioList,
 }: Props) {
   const {
     ready,
     isPremium,
-    priceLabel,
+    pricing,
     purchaseMode,
     stampSkin,
     purchaseMonthly,
@@ -86,8 +96,17 @@ export function ProfileScreen({
   useEffect(() => {
     void loadRamNotifEnabled().then(setRamOn);
     void loadGioNotifEnabled().then(setGioOn);
-    void loadGioAdvanceDays().then(setGioAdvance);
-  }, []);
+    void loadGioAdvanceDays().then(async (days) => {
+      const clamped = clampAdvanceForTier(days, isPremium);
+      if (clamped !== days) {
+        await setGioAdvanceDays(clamped);
+        if (gioOn) {
+          await rescheduleGioIfEnabled();
+        }
+      }
+      setGioAdvance(clamped);
+    });
+  }, [isPremium, gioOn]);
 
   const buy = async () => {
     setBusy(true);
@@ -142,6 +161,13 @@ export function ProfileScreen({
   };
 
   const pickAdvance = async (days: GioAdvanceDays) => {
+    if (!isAdvanceAllowed(days, isPremium)) {
+      Alert.alert(
+        'Premium',
+        'Nhắc trước 3/7 ngày dành cho Premium. Miễn phí: chỉ ngày giỗ hoặc 1 ngày trước.',
+      );
+      return;
+    }
     if (days === gioAdvance) return;
     setGioAdvance(days);
     await setGioAdvanceDays(days);
@@ -237,17 +263,28 @@ export function ProfileScreen({
         <Text style={[styles.line, styles.advanceLabel]}>
           Nhắc trước (sáng 7:30 giờ VN)
         </Text>
+        {!isPremium ? (
+          <Text style={styles.tierHint}>
+            Miễn phí: tối đa {FREE_ANNIV_LIMIT} giỗ/sinh nhật · nhắc 1 ngày trước
+          </Text>
+        ) : null}
         <View style={styles.advanceRow}>
           {GIO_ADVANCE_OPTIONS.map((opt) => {
             const on = gioAdvance === opt.value;
+            const locked = !isAdvanceAllowed(opt.value, isPremium);
             return (
               <Pressable
                 key={opt.value}
-                style={[styles.advanceChip, on && styles.advanceChipOn]}
+                style={[
+                  styles.advanceChip,
+                  on && styles.advanceChipOn,
+                  locked && styles.advanceChipLocked,
+                ]}
                 onPress={() => void pickAdvance(opt.value)}
               >
                 <Text style={[styles.advanceText, on && styles.advanceTextOn]}>
                   {opt.label}
+                  {locked ? ' 🔒' : ''}
                 </Text>
               </Pressable>
             );
@@ -339,10 +376,11 @@ export function ProfileScreen({
         ) : isPremium ? (
           <>
             <Text style={styles.premiumOn}>Đang dùng Premium</Text>
-            <Text style={styles.line}>• Không quảng cáo thưởng</Text>
-            <Text style={styles.line}>• Widget ghim giữ bố cục</Text>
-            <Text style={styles.line}>• Tử vi mở ngay</Text>
-            <Text style={styles.line}>• Mực vàng & băng keo dán</Text>
+            {PREMIUM_BENEFITS.map((line) => (
+              <Text key={line} style={styles.line}>
+                • {line}
+              </Text>
+            ))}
             {__DEV__ ? (
               <Pressable
                 style={styles.secondaryBtn}
@@ -354,10 +392,13 @@ export function ProfileScreen({
           </>
         ) : (
           <>
-            <Text style={styles.price}>{priceLabel}</Text>
-            <Text style={styles.line}>• Bỏ quảng cáo 30s</Text>
-            <Text style={styles.line}>• Ghim widget vĩnh viễn</Text>
-            <Text style={styles.line}>• Mực vàng + băng keo dán</Text>
+            <Text style={styles.price}>{pricing.annual}</Text>
+            <Text style={styles.priceHint}>{pricing.monthlyHint}</Text>
+            {PREMIUM_BENEFITS.map((line) => (
+              <Text key={line} style={styles.line}>
+                • {line}
+              </Text>
+            ))}
             <Pressable
               style={[styles.cta, busy && styles.ctaDisabled]}
               onPress={() => void buy()}
@@ -370,6 +411,8 @@ export function ProfileScreen({
             <Pressable style={styles.secondaryBtn} onPress={() => void doRestore()}>
               <Text style={styles.secondaryText}>Khôi phục mua hàng</Text>
             </Pressable>
+            <Text style={styles.lifetimeTitle}>{pricing.lifetimeTitle}</Text>
+            <Text style={styles.priceHint}>{pricing.lifetimePrice}</Text>
             {__DEV__ && purchaseMode === 'mock' ? (
               <Text style={styles.hint}>Chế độ thử · chỉ hiện khi dev build</Text>
             ) : null}
@@ -377,29 +420,12 @@ export function ProfileScreen({
         )}
       </View>
 
-      <Pressable style={styles.card} onPress={onOpenSteps}>
-        <Text style={styles.cardTitle}>Bước chân</Text>
-        <Text style={styles.line}>Mở màn hình đếm bước</Text>
-      </Pressable>
-
       <Pressable style={styles.card} onPress={() => void openPrivacy()}>
         <Text style={styles.cardTitle}>Chính sách bảo mật</Text>
         <Text style={styles.line}>
           Local-first · giỗ / memo trên máy · mở bản đầy đủ
         </Text>
       </Pressable>
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Đã có trên máy</Text>
-        <Text style={styles.line}>• Lịch âm + xé tờ lịch</Text>
-        <Text style={styles.line}>• Cam kết 10 chữ → đóng dấu tự động</Text>
-        <Text style={styles.line}>• Widget hôm nay + chia sẻ tờ lịch</Text>
-        <Text style={styles.line}>• Giỗ âm + nhắc năm sau</Text>
-        <Text style={styles.line}>• Giá vàng / xăng + tử vi</Text>
-        <Text style={styles.hint}>
-          {storeConfig.bundleIdentifier} · v{storeConfig.version}
-        </Text>
-      </View>
 
       <Modal
         visible={privacyOpen}
@@ -487,7 +513,19 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: colors.ink,
-    marginBottom: 6,
+    marginBottom: 2,
+  },
+  priceHint: {
+    fontSize: 11,
+    color: colors.inkMuted,
+    marginBottom: 10,
+  },
+  lifetimeTitle: {
+    marginTop: 12,
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.inkMuted,
+    textAlign: 'center',
   },
   line: {
     color: colors.ink,
@@ -575,6 +613,15 @@ const styles = StyleSheet.create({
   advanceChipOn: {
     borderColor: colors.crimson,
     backgroundColor: '#FFF5F4',
+  },
+  advanceChipLocked: {
+    opacity: 0.72,
+  },
+  tierHint: {
+    marginTop: 6,
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.inkFaint,
   },
   advanceText: {
     fontSize: 11,

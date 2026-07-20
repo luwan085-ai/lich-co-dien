@@ -4,8 +4,14 @@ import { HoroscopeEntertainmentSection } from '../components/HoroscopeEntertainm
 import { KillerPackTray } from '../components/KillerPackTray';
 import { buildDailyHoroscope, type FacetScores } from '../data/horoscope';
 import { loadHoroscopeProfile } from '../lib/horoscopeProfile';
+import {
+  loadHoroscopeUnlocked,
+  setHoroscopeUnlocked,
+} from '../lib/horoscopeUnlock';
 import { nenDigestLine, kiengDigestLine } from '../lib/dayDigest';
 import { getCalendarDay } from '../lunar/today';
+import { solarKey } from '../lunar/solar';
+import { getVietnamSolarToday } from '../lunar/vietnamTime';
 import { useRewardedAdGate } from '../monetization/ads';
 import { usePremium } from '../monetization/premium';
 import { colors, spacing } from '../theme/tokens';
@@ -24,6 +30,7 @@ const FACETS: { key: keyof FacetScores; label: string }[] = [
 
 export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
   const day = useMemo(() => getCalendarDay(), []);
+  const todayKey = useMemo(() => solarKey(getVietnamSolarToday()), []);
   const [profileAnimal, setProfileAnimal] = useState<string | null>(null);
   const data = useMemo(
     () => buildDailyHoroscope(day, profileAnimal),
@@ -43,8 +50,12 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
   }, [refreshProfile]);
 
   useEffect(() => {
-    if (isPremium) setUnlocked(true);
-  }, [isPremium]);
+    if (isPremium) {
+      setUnlocked(true);
+      return;
+    }
+    void loadHoroscopeUnlocked(todayKey).then(setUnlocked);
+  }, [isPremium, todayKey]);
 
   const unlock = async () => {
     if (isPremium) {
@@ -52,7 +63,10 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
       return;
     }
     const result = await showRewarded();
-    if (result === 'earned') setUnlocked(true);
+    if (result === 'earned') {
+      setUnlocked(true);
+      await setHoroscopeUnlocked(todayKey, true);
+    }
   };
 
   return (

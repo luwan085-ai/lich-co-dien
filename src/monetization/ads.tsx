@@ -87,15 +87,12 @@ export function useRewardedAdGate(): AdGate {
       <Modal transparent animationType="fade" visible={visible}>
         <View style={styles.backdrop}>
           <View style={styles.card}>
-            <Text style={styles.kicker}>QUẢNG CÁO THƯỞNG · MOCK</Text>
+            <Text style={styles.kicker}>QUẢNG CÁO THƯỞNG</Text>
             <Text style={styles.title}>Đang xem… {secondsLeft}s</Text>
             <Text style={styles.body}>
-              Xem hết để mở khóa tử vi. Gắn AdMob unit ID để thay mock bằng ads
-              thật.
+              Xem hết để mở luận giải đầy đủ hôm nay · giải trí, không đảm bảo kết
+              quả.
             </Text>
-            <Pressable style={styles.skip} onPress={() => finish('skipped')}>
-              <Text style={styles.skipText}>Bỏ qua</Text>
-            </Pressable>
           </View>
         </View>
       </Modal>
@@ -143,16 +140,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     color: colors.inkMuted,
-  },
-  skip: {
-    marginTop: 18,
-    alignSelf: 'flex-end',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  skipText: {
-    color: colors.inkFaint,
-    fontSize: 12,
-    fontWeight: '700',
   },
 });

@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { rescheduleGioIfEnabled } from '../lib/gioNotifications';
 import {
   dDayLabel,
   formatSolarShort,
   listUpcomingGio,
   type GioOccurrence,
 } from '../lib/gioSchedule';
-import { loadMemoMap } from '../lib/localMemos';
-import type { SolarDate } from '../lunar/solar';
+import { loadMemoMap, removeAnniversaryByLunar } from '../lib/localMemos';
+import { parseSolarKey, type SolarDate } from '../lunar/solar';
 import { getVietnamSolarToday } from '../lunar/vietnamTime';
 import { colors, spacing } from '../theme/tokens';
 
@@ -23,6 +25,7 @@ type Props = {
   displayFont?: string;
   onBack?: () => void;
   onSelectDay: (day: SolarDate) => void;
+  onChanged?: () => void;
 };
 
 export function GioListScreen({
@@ -30,6 +33,7 @@ export function GioListScreen({
   displayFont,
   onBack,
   onSelectDay,
+  onChanged,
 }: Props) {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<GioOccurrence[]>([]);
@@ -49,6 +53,33 @@ export function GioListScreen({
     void refresh();
   }, [refresh]);
 
+  const openEditDay = (item: GioOccurrence) => {
+    const saved = parseSolarKey(item.dateKey);
+    onSelectDay(saved ?? item.solar);
+  };
+
+  const confirmDelete = (item: GioOccurrence) => {
+    Alert.alert(
+      'Xóa giỗ / sinh nhật âm?',
+      `${item.label} · ${item.lunarLabel}\nKhông xóa ghi chú thường khác.`,
+      [
+        { text: 'Hủy', style: 'cancel' },
+        {
+          text: 'Xóa',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              await removeAnniversaryByLunar(item.lunar);
+              await rescheduleGioIfEnabled();
+              onChanged?.();
+              await refresh();
+            })();
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <View style={styles.wrap}>
       {onBack ? (
@@ -64,7 +95,7 @@ export function GioListScreen({
         Danh sách giỗ & sinh nhật
       </Text>
       <Text style={styles.sub}>
-        Sắp xếp theo ngày dương tiếp theo · chạm để mở tờ lịch ngày đó.
+        Chạm hàng để mở ngày tiếp theo · Sửa/Xóa để quản lý.
       </Text>
 
       {loading ? (
@@ -85,36 +116,56 @@ export function GioListScreen({
           {items.map((item) => {
             const isBirthday = item.annivKind === 'birthday';
             return (
-            <Pressable
-              key={`${item.lunarLabel}-${item.solar.year}-${item.solar.month}-${item.solar.day}`}
-              style={styles.row}
-              onPress={() => onSelectDay(item.solar)}
-              accessibilityRole="button"
-              accessibilityLabel={`${item.label}, ${dDayLabel(item.daysUntil)}`}
-            >
-              <View style={styles.rowTop}>
-                <View style={styles.rowLabelWrap}>
-                  <Text
-                    style={[styles.kindBadge, isBirthday && styles.kindBirthday]}
-                  >
-                    {isBirthday ? 'Sinh nhật' : 'Giỗ'}
+              <View
+                key={`${item.lunarLabel}-${item.solar.year}-${item.solar.month}-${item.solar.day}`}
+                style={styles.row}
+              >
+                <Pressable
+                  style={styles.rowMain}
+                  onPress={() => onSelectDay(item.solar)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.label}, ${dDayLabel(item.daysUntil)}`}
+                >
+                  <View style={styles.rowTop}>
+                    <View style={styles.rowLabelWrap}>
+                      <Text
+                        style={[styles.kindBadge, isBirthday && styles.kindBirthday]}
+                      >
+                        {isBirthday ? 'Sinh nhật' : 'Giỗ'}
+                      </Text>
+                      <Text
+                        style={[styles.rowLabel, fontFamily ? { fontFamily } : null]}
+                        numberOfLines={1}
+                      >
+                        {item.label}
+                      </Text>
+                    </View>
+                    <Text style={[styles.dday, item.daysUntil === 0 && styles.ddayToday]}>
+                      {dDayLabel(item.daysUntil)}
+                    </Text>
+                  </View>
+                  <Text style={styles.lunar}>{item.lunarLabel}</Text>
+                  <Text style={styles.solar}>
+                    Lần tới {formatSolarShort(item.solar)} dương
                   </Text>
-                  <Text
-                    style={[styles.rowLabel, fontFamily ? { fontFamily } : null]}
-                    numberOfLines={1}
+                </Pressable>
+                <View style={styles.actions}>
+                  <Pressable
+                    style={styles.actionBtn}
+                    onPress={() => openEditDay(item)}
                   >
-                    {item.label}
-                  </Text>
+                    <Text style={styles.actionText}>Sửa</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.actionBtn, styles.actionDanger]}
+                    onPress={() => confirmDelete(item)}
+                  >
+                    <Text style={[styles.actionText, styles.actionDangerText]}>
+                      Xóa
+                    </Text>
+                  </Pressable>
                 </View>
-                <Text style={[styles.dday, item.daysUntil === 0 && styles.ddayToday]}>
-                  {dDayLabel(item.daysUntil)}
-                </Text>
               </View>
-              <Text style={styles.lunar}>{item.lunarLabel}</Text>
-              <Text style={styles.solar}>
-                Lần tới {formatSolarShort(item.solar)} dương
-              </Text>
-            </Pressable>
             );
           })}
         </ScrollView>
@@ -190,6 +241,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.paper,
+  },
+  rowMain: {
     padding: 14,
   },
   rowTop: {
@@ -245,5 +298,27 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 11,
     color: colors.inkMuted,
+  },
+  actions: {
+    flexDirection: 'row',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  actionBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  actionDanger: {
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: colors.border,
+  },
+  actionText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.crimson,
+  },
+  actionDangerText: {
+    color: colors.crimsonDeep,
   },
 });

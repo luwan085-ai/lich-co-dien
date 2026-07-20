@@ -24,6 +24,7 @@ type PremiumContextValue = {
   ready: boolean;
   isPremium: boolean;
   priceLabel: string;
+  pricing: typeof monetizationConfig.pricing;
   /** mock until RC keys land */
   purchaseMode: 'mock' | 'revenuecat';
   stampSkin: StampSkin;
@@ -105,6 +106,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
       ready,
       isPremium,
       priceLabel: monetizationConfig.priceLabel,
+      pricing: monetizationConfig.pricing,
       purchaseMode: mode,
       stampSkin: isPremium ? stampSkin : 'classic',
       purchaseMonthly,

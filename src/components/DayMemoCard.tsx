@@ -17,10 +17,13 @@ import { nearestPersonalLunarEvent } from '../lib/lunarUpcoming';
 import {
   inferAnnivKind,
   loadMemo,
+  loadMemoMap,
   saveMemo,
   type AnnivKind,
 } from '../lib/localMemos';
+import { canAddAnniversary } from '../lib/gioLimits';
 import { buildMemoCardPreview } from '../lib/memoCardPreview';
+import { usePremium } from '../monetization/premium';
 import { colors } from '../theme/tokens';
 
 type Props = {
@@ -42,6 +45,7 @@ export function DayMemoCard({
   onGioChanged,
   gioRefreshKey = 0,
 }: Props) {
+  const { isPremium } = usePremium();
   const [text, setText] = useState('');
   const [isAnniversary, setIsAnniversary] = useState(false);
   const [annivKind, setAnnivKind] = useState<AnnivKind | null>(null);
@@ -147,18 +151,29 @@ export function DayMemoCard({
     nextText: string,
     nextAnn: boolean,
     nextKind: AnnivKind | null,
-  ) => {
+  ): Promise<boolean> => {
     const prevText = text;
     const prevAnn = isAnniversary;
     const prevKind = annivKind;
     try {
+      if (nextAnn) {
+        const map = await loadMemoMap();
+        const gate = canAddAnniversary(map, dateKey, true, isPremium);
+        if (!gate.ok) {
+          Alert.alert('Giới hạn miễn phí', gate.message);
+          return false;
+        }
+      }
       const saved = await saveMemo(
         dateKey,
         nextText,
         nextAnn,
         nextKind ?? undefined,
       );
+      setIsAnniversary(nextAnn);
+      setAnnivKind(nextKind);
       await applySavedMemo(saved);
+      return true;
     } catch {
       setText(prevText);
       setIsAnniversary(prevAnn);
@@ -168,6 +183,7 @@ export function DayMemoCard({
         'Chưa lưu được',
         'Không ghi được ghi chú. Kiểm tra bộ nhớ thiết bị và thử lại.',
       );
+      return false;
     }
   };
 
@@ -175,8 +191,6 @@ export function DayMemoCard({
     const active = isAnniversary && annivKind === kind;
     const nextAnn = !active;
     const nextKind = nextAnn ? kind : null;
-    setIsAnniversary(nextAnn);
-    setAnnivKind(nextKind);
     void persist(text, nextAnn, nextKind);
   };
 

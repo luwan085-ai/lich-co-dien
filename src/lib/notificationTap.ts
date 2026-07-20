@@ -5,7 +5,7 @@ type OpenFromNotification = (
   data: Record<string, unknown> | undefined,
 ) => void;
 
-/** Giỗ tap → open solar day on Hôm nay. No-op cleanup on web stub. */
+/** Notification tap → open solar day on Hôm nay (giỗ · Rằm/Mùng Một). */
 export function bindGioNotificationTap(
   openFromNotification: OpenFromNotification,
 ): () => void {

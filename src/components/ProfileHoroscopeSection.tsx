@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import {
+  animalFromBirthYear,
   loadHoroscopeProfile,
+  setBirthYear,
   setZodiacAnimal,
   ZODIAC_ANIMALS,
   type HoroscopeProfile,
@@ -13,28 +22,93 @@ type Props = {
   fontFamily?: string;
 };
 
+const MIN_BIRTH_YEAR = 1920;
+
 export function ProfileHoroscopeSection({ fontFamily }: Props) {
   const [profile, setProfile] = useState<HoroscopeProfile>({});
+  const [yearDraft, setYearDraft] = useState('');
 
   useEffect(() => {
-    void loadHoroscopeProfile().then(setProfile);
+    void loadHoroscopeProfile().then((next) => {
+      setProfile(next);
+      if (next.birthYear) setYearDraft(String(next.birthYear));
+    });
   }, []);
 
   const pick = async (animal: ZodiacAnimal) => {
     const next = await setZodiacAnimal(animal);
     setProfile(next);
+    setYearDraft('');
+  };
+
+  const applyBirthYear = async () => {
+    const year = Number.parseInt(yearDraft.trim(), 10);
+    const maxYear = new Date().getFullYear();
+    if (!Number.isFinite(year) || year < MIN_BIRTH_YEAR || year > maxYear) {
+      Alert.alert(
+        'Năm sinh không hợp lệ',
+        `Nhập năm từ ${MIN_BIRTH_YEAR} đến ${maxYear}.`,
+      );
+      return;
+    }
+    const next = await setBirthYear(year);
+    setProfile(next);
+    setYearDraft(String(year));
   };
 
   const selected = profile.animal;
+  const previewYear = Number.parseInt(yearDraft.trim(), 10);
+  const previewAnimal =
+    yearDraft.trim().length === 4 &&
+    Number.isFinite(previewYear) &&
+    previewYear >= MIN_BIRTH_YEAR &&
+    previewYear <= new Date().getFullYear()
+      ? animalFromBirthYear(previewYear)
+      : null;
+  const selectedLine = selected
+    ? profile.birthYear
+      ? `Đang chọn: tuổi ${selected} · sinh ${profile.birthYear}`
+      : `Đang chọn: tuổi ${selected}`
+    : 'Chưa chọn tuổi · nhập năm sinh hoặc chọn con giáp';
 
   return (
     <View style={styles.wrap}>
       <Text style={styles.sub}>
-        Chọn tuổi của bạn — màn Tử vi sẽ hiển thị “Hôm nay của tuổi …”
+        Màn Tử vi sẽ hiển thị “Hôm nay của tuổi …” theo lựa chọn của bạn.
       </Text>
       <Text style={[styles.selectedLine, fontFamily ? { fontFamily } : null]}>
-        {selected ? `Đang chọn: tuổi ${selected}` : 'Chưa chọn tuổi · chạm một con giáp bên dưới'}
+        {selectedLine}
       </Text>
+
+      <Text style={[styles.fieldLabel, fontFamily ? { fontFamily } : null]}>
+        Nhập năm sinh
+      </Text>
+      <View style={styles.yearRow}>
+        <TextInput
+          style={[styles.yearInput, fontFamily ? { fontFamily } : null]}
+          value={yearDraft}
+          onChangeText={setYearDraft}
+          keyboardType="number-pad"
+          maxLength={4}
+          placeholder="1990"
+          placeholderTextColor={colors.inkFaint}
+          returnKeyType="done"
+          onSubmitEditing={() => void applyBirthYear()}
+        />
+        <Pressable style={styles.yearBtn} onPress={() => void applyBirthYear()}>
+          <Text style={[styles.yearBtnText, fontFamily ? { fontFamily } : null]}>
+            Áp dụng
+          </Text>
+        </Pressable>
+      </View>
+      {previewAnimal ? (
+        <Text style={styles.yearHint}>→ tuổi {previewAnimal}</Text>
+      ) : null}
+
+      <Text style={[styles.orLine, fontFamily ? { fontFamily } : null]}>
+        hoặc chọn con giáp
+      </Text>
+
       <View style={styles.grid}>
         {ZODIAC_ANIMALS.map((animal) => {
           const active = selected === animal;
@@ -79,11 +153,58 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.crimsonDeep,
   },
+  fieldLabel: {
+    marginTop: 14,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    color: colors.inkMuted,
+  },
+  yearRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  yearInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.ink,
+  },
+  yearBtn: {
+    borderWidth: 1,
+    borderColor: colors.crimson,
+    backgroundColor: colors.paper,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+  },
+  yearBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.crimson,
+  },
+  yearHint: {
+    marginTop: 6,
+    fontSize: 11,
+    color: colors.inkFaint,
+  },
+  orLine: {
+    marginTop: 14,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.inkFaint,
+    textAlign: 'center',
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginTop: 12,
+    marginTop: 10,
   },
   chip: {
     width: '30%',

@@ -64,7 +64,9 @@ function AppShell() {
   }, []);
 
   const openFromNotification = (data: Record<string, unknown> | undefined) => {
-    if (!data || data.kind !== 'gio') return;
+    if (!data?.kind) return;
+    const kind = data.kind;
+    if (kind !== 'gio' && kind !== 'ram') return;
     const solar = data.solar as SolarDate | undefined;
     if (!solar?.year || !solar.month || !solar.day) return;
     setSelected(solar);
@@ -154,6 +156,7 @@ function AppShell() {
               setShowGioList(false);
               setTab('today');
             }}
+            onChanged={() => setMemoRefreshKey((n) => n + 1)}
           />
         ) : null}
         {!showSteps && !showGioList && tab === 'today' ? (
@@ -188,7 +191,6 @@ function AppShell() {
           <ProfileScreen
             fontFamily={fonts?.bodySemi}
             stampFont={fonts?.stamp}
-            onOpenSteps={() => setShowSteps(true)}
             onOpenGioList={() => setShowGioList(true)}
           />
         ) : null}

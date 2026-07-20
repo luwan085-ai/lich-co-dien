@@ -154,3 +154,29 @@ export function annivKindOnLunar(
   }
   return null;
 }
+
+/** Remove giỗ/sinh nhật âm for a lunar day across all saved memos. */
+export async function removeAnniversaryByLunar(
+  lunar: LunarAnniv,
+): Promise<number> {
+  const map = await loadMemoMap();
+  let touched = 0;
+  for (const [key, raw] of Object.entries(map)) {
+    const memo = hydrateMemo(key, raw);
+    if (!memoMatchesLunar(memo, lunar)) continue;
+    touched += 1;
+    if (memo.text.trim()) {
+      map[key] = {
+        text: memo.text,
+        isAnniversary: false,
+        updatedAt: new Date().toISOString(),
+      };
+    } else {
+      delete map[key];
+    }
+  }
+  if (touched > 0) {
+    await AsyncStorage.setItem(KEY, JSON.stringify(map));
+  }
+  return touched;
+}
