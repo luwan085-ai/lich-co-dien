@@ -265,12 +265,15 @@ function MarketWidget({
         <>
           {board.isFallback ? (
             <Text style={styles.offlineHint}>
-              Dữ liệu tham khảo · làm mới khi có mạng
+              Giá có thể đã thay đổi · tham khảo{' '}
+              {board.fallbackAsOfLabel ?? 'offline'} · làm mới khi có mạng
             </Text>
           ) : null}
 
           <Text style={styles.section}>
-            VÀNG SJC{board.goldLive ? '' : ' · cache'}
+            VÀNG SJC
+            {!board.goldLive && board.isFallback ? ' · tham khảo' : ''}
+            {!board.goldLive && !board.isFallback ? ' · cache' : ''}
           </Text>
           {board.gold ? (
             <View style={styles.quoteRow}>

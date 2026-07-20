@@ -24,10 +24,20 @@ export type MarketBoard = {
   goldLive: boolean;
   /** petrol from live scrape */
   petrolLive: boolean;
+  /** When isFallback — baseline date of hardcoded quotes */
+  fallbackAsOfLabel: string | null;
   sourceNote: string;
 };
 
 const REGION_KEY = 'lich_petrol_region_v1';
+
+/** Offline snapshot baseline — update when VN market moves materially. */
+export const MARKET_FALLBACK_AS_OF = { day: 15, month: 6, year: 2026 };
+
+export function formatMarketFallbackAsOf(): string {
+  const { day, month, year } = MARKET_FALLBACK_AS_OF;
+  return `${day}/${month}/${year}`;
+}
 
 const GOLD_FALLBACK: MarketQuote = {
   label: 'SJC 9999',
@@ -173,6 +183,7 @@ export async function fetchMarketBoard(
     .padStart(2, '0')} · ${now.getDate()}/${now.getMonth() + 1}`;
 
   const regionName = resolved === 1 ? 'Vùng 1' : 'Vùng 2';
+  const fallbackAsOfLabel = isFallback ? formatMarketFallbackAsOf() : null;
 
   return {
     gold: gold ?? GOLD_FALLBACK,
@@ -182,8 +193,9 @@ export async function fetchMarketBoard(
     isFallback,
     goldLive,
     petrolLive,
+    fallbackAsOfLabel,
     sourceNote: isFallback
-      ? `Offline · ${regionName} · SJC / Petrolimex tham khảo`
+      ? `Giá tham khảo · cập nhật ${formatMarketFallbackAsOf()} · ${regionName}`
       : `SJC live · Petrolimex ${regionName}`,
   };
 }

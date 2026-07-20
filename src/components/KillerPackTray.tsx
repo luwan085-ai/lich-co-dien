@@ -77,7 +77,7 @@ export function KillerPackTray({ day, fontFamily, coreOnly = false }: Props) {
 
       <Card
         title={pack.vanKhan.title}
-        desc="Bài cúng ngắn — đọc trước bàn thờ."
+        desc={pack.vanKhan.cardDesc}
         fontFamily={fontFamily}
         accent="#6B3FA0"
       >
@@ -91,6 +91,7 @@ export function KillerPackTray({ day, fontFamily, coreOnly = false }: Props) {
             <Text style={styles.linkChev}>›</Text>
           </Pressable>
         ))}
+        <Text style={styles.disclaimer}>{pack.vanKhan.trustNote}</Text>
       </Card>
 
       {!coreOnly ? (
@@ -129,6 +130,8 @@ export function KillerPackTray({ day, fontFamily, coreOnly = false }: Props) {
             <Text style={styles.modalSub}>{khan?.subtitle}</Text>
             <ScrollView style={styles.modalScroll}>
               <Text style={styles.modalBody}>{khan?.body}</Text>
+              <Text style={styles.modalTrust}>{pack.vanKhan.trustNote}</Text>
+              <Text style={styles.disclaimerLegal}>{pack.vanKhan.modalLegal}</Text>
             </ScrollView>
             <Pressable style={styles.modalClose} onPress={() => setKhan(null)}>
               <Text style={styles.modalCloseText}>Đóng</Text>
@@ -318,6 +321,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 26,
     color: colors.ink,
+  },
+  modalTrust: {
+    marginTop: 14,
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.inkMuted,
   },
   modalClose: {
     marginTop: 14,

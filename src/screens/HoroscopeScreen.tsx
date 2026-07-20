@@ -19,6 +19,7 @@ import { colors, spacing } from '../theme/tokens';
 type Props = {
   fontFamily?: string;
   displayFont?: string;
+  onOpenProfile?: () => void;
 };
 
 const FACETS: { key: keyof FacetScores; label: string }[] = [
@@ -28,7 +29,11 @@ const FACETS: { key: keyof FacetScores; label: string }[] = [
   { key: 'health', label: 'Sức khỏe' },
 ];
 
-export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
+export function HoroscopeScreen({
+  fontFamily,
+  displayFont,
+  onOpenProfile,
+}: Props) {
   const day = useMemo(() => getCalendarDay(), []);
   const todayKey = useMemo(() => solarKey(getVietnamSolarToday()), []);
   const [profileAnimal, setProfileAnimal] = useState<string | null>(null);
@@ -69,6 +74,8 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
     }
   };
 
+  const profileConfigured = Boolean(profileAnimal);
+
   return (
     <>
       <ScrollView
@@ -78,7 +85,7 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
       >
         <View style={styles.hero}>
           <Text style={[styles.kicker, fontFamily ? { fontFamily } : null]}>
-            TỬ VI · HÔM NAY CỦA BẠN
+            TỬ VI · GIẢI TRÍ · HÔM NAY
           </Text>
           <Text
             style={[
@@ -89,6 +96,16 @@ export function HoroscopeScreen({ fontFamily, displayFont }: Props) {
             {data.personalHeadline}
           </Text>
           <Text style={styles.sub}>{data.personalSub}</Text>
+          {!profileConfigured && onOpenProfile ? (
+            <Pressable style={styles.profileCta} onPress={onOpenProfile}>
+              <Text style={[styles.profileCtaText, fontFamily ? { fontFamily } : null]}>
+                Chọn tuổi trong Cá nhân để cá nhân hóa ›
+              </Text>
+            </Pressable>
+          ) : null}
+          <Text style={styles.heroLegal}>
+            Luận giải mang tính giải trí · không thay thế tư vấn chuyên môn
+          </Text>
           <Text style={styles.meta}>
             {data.yearHeadline}
             {' · '}
@@ -267,6 +284,25 @@ const styles = StyleSheet.create({
     color: 'rgba(255,250,243,0.82)',
     fontSize: 12,
     lineHeight: 18,
+  },
+  profileCta: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,250,243,0.35)',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  profileCtaText: {
+    color: colors.goldSoft,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  heroLegal: {
+    marginTop: 8,
+    color: 'rgba(255,250,243,0.62)',
+    fontSize: 10,
+    lineHeight: 14,
   },
   meta: {
     marginTop: 8,

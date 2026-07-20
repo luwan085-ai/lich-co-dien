@@ -1,7 +1,14 @@
 import type { CalendarDay } from '../lunar/today';
 import { parseCanChi, type Branch } from '../data/canChiMeta';
 import { BRANCH_XUNG, tuoiXungForDayBranch } from '../data/xung';
-import { VAN_KHAN, type VanKhanArticle, type VanKhanId } from '../data/vanKhan';
+import {
+  VAN_KHAN,
+  VAN_KHAN_CARD_DESC,
+  VAN_KHAN_MODAL_LEGAL,
+  VAN_KHAN_TRUST_NOTE,
+  type VanKhanArticle,
+  type VanKhanId,
+} from '../data/vanKhan';
 import { zodiacPackKey } from '../data/zodiacPack';
 
 export type KillerHour = {
@@ -40,6 +47,9 @@ export type KillerPack = {
   tuoiXung: KillerXung;
   vanKhan: {
     title: string;
+    cardDesc: string;
+    trustNote: string;
+    modalLegal: string;
     active: VanKhanId | null;
     reason: string | null;
     articles: VanKhanArticle[];
@@ -141,6 +151,9 @@ export function buildKillerPack(day: CalendarDay): KillerPack {
     },
     vanKhan: {
       title: '📿 Văn Khấn Mùng 1 & Rằm',
+      cardDesc: VAN_KHAN_CARD_DESC,
+      trustNote: VAN_KHAN_TRUST_NOTE,
+      modalLegal: VAN_KHAN_MODAL_LEGAL,
       active,
       reason,
       articles: [VAN_KHAN.mung1, VAN_KHAN.ram, VAN_KHAN.thanTai],

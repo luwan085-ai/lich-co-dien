@@ -185,6 +185,7 @@ function AppShell() {
           <HoroscopeScreen
             fontFamily={fonts?.bodySemi}
             displayFont={fonts?.display}
+            onOpenProfile={() => setTab('profile')}
           />
         ) : null}
         {!showSteps && !showGioList && tab === 'profile' ? (

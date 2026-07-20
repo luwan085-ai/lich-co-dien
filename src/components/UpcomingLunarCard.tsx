@@ -50,6 +50,8 @@ export function UpcomingLunarCard({
 
   if (items.length === 0) return null;
 
+  const hasPersonal = items.some((item) => item.personal);
+
   return (
     <View style={styles.wrap}>
       <View style={styles.header}>
@@ -84,6 +86,16 @@ export function UpcomingLunarCard({
           </Text>
         </Pressable>
       ))}
+      {!hasPersonal ? (
+        <View style={styles.ctaBox}>
+          <Text style={[styles.ctaTitle, fontFamily ? { fontFamily } : null]}>
+            Thêm ngày giỗ đầu tiên
+          </Text>
+          <Text style={styles.ctaBody}>
+            Vuốt xuống · Ghi chú / Giỗ lễ → chọn Giỗ âm hoặc Sinh nhật âm
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -144,5 +156,22 @@ const styles = StyleSheet.create({
   },
   ddayToday: {
     color: colors.crimson,
+  },
+  ctaBox: {
+    marginTop: 8,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(196, 30, 58, 0.12)',
+  },
+  ctaTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.crimsonDeep,
+  },
+  ctaBody: {
+    marginTop: 4,
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.inkMuted,
   },
 });

@@ -16,13 +16,16 @@
       "supportsTablet": true,
       "bundleIdentifier": "vn.lichcodien.app",
       "infoPlist": {
-        "NSUserNotificationsUsageDescription": "Nhắc Rằm, Mùng Một, giỗ và sinh nhật âm vào sáng 7:30 giờ Việt Nam."
+        "NSUserNotificationsUsageDescription": "Nhắc Rằm, Mùng Một, giỗ và sinh nhật âm vào sáng 7:30 giờ Việt Nam.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "vn.lichcodien.app",
       "permissions": [
-        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
@@ -47,7 +50,14 @@
     },
     "plugins": [
       "expo-font",
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "recordAudioAndroid": false,
+          "microphonePermission": false,
+          "enableBackgroundPlayback": false
+        }
+      ],
       "expo-sharing",
       [
         "expo-notifications",

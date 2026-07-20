@@ -3,6 +3,16 @@
  * Designed for on-screen reading at bàn thờ (not scraped copyright long-form).
  */
 
+/** Shown on cards and modals — sets user expectations. */
+export const VAN_KHAN_CARD_DESC =
+  'Bài cúng ngắn tham khảo — đọc trước bàn thờ. Không phải văn khấn truyền thống đầy đủ.';
+
+export const VAN_KHAN_TRUST_NOTE =
+  'Biên soạn ngắn gọn cho app · tham khảo phong tục Việt Nam. Tùy vùng miền và gia phong có thể khác — không thay lời thầy hoặc người lớn trong gia đình.';
+
+export const VAN_KHAN_MODAL_LEGAL =
+  'Nội dung gợi ý đọc tại nhà · không phải văn bản tôn giáo chính thức. Lễ quan trọng nên tham khảo người am hiểu phong tục địa phương.';
+
 export type VanKhanId = 'mung1' | 'ram' | 'thanTai';
 
 export type VanKhanArticle = {

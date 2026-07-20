@@ -70,7 +70,7 @@ export function buildMemoCardPreview(
   }
 
   return {
-    headline: 'Thêm giỗ hoặc sinh nhật âm',
+    headline: 'Bắt đầu: thêm giỗ hoặc sinh nhật âm',
     detail: `Nhận nhắc hằng năm · ${TAP}`,
   };
 }
