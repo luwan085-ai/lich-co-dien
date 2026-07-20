@@ -236,19 +236,4 @@ export function getMonthGrid(year: number, month: number) {
   return { firstWeekday, daysInMonth, cells };
 }
 
-/** @deprecated Use getCalendarDay */
-export function getTodayLunar(now = new Date()) {
-  const d = getCalendarDay(now);
-  return {
-    solarLabel: `${d.solar.day}/${d.solar.month}/${d.solar.year}`,
-    lunarDay: d.lunar.day,
-    lunarMonth: d.lunar.month,
-    lunarYear: d.lunar.year,
-    leapMonth: d.lunar.leapMonth,
-    lunarLabel: `Mồng ${d.lunar.day} Tháng ${d.lunar.month} năm ${d.lunar.year}`,
-    yearCanChi: d.canChi.year,
-    weekdayVi: d.weekdayVi,
-  };
-}
-
 export { getVietnamSolarToday } from './vietnamTime';

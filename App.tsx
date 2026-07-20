@@ -20,7 +20,6 @@ import { HoroscopeScreen } from './src/screens/HoroscopeScreen';
 import { MonthCalendarScreen } from './src/screens/MonthCalendarScreen';
 import { GioListScreen } from './src/screens/GioListScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
-import { StepsScreen } from './src/screens/StepsScreen';
 import type { SolarDate } from './src/lunar/solar';
 import { isSameSolar } from './src/lunar/solar';
 import { getVietnamSolarToday } from './src/lunar/vietnamTime';
@@ -42,7 +41,6 @@ function AppShell() {
   const [selected, setSelected] = useState<SolarDate>(() =>
     getVietnamSolarToday(),
   );
-  const [showSteps, setShowSteps] = useState(false);
   const [showGioList, setShowGioList] = useState(false);
   const [memoRefreshKey, setMemoRefreshKey] = useState(0);
   const todayRef = useRef<SolarDate>(getVietnamSolarToday());
@@ -71,7 +69,6 @@ function AppShell() {
     if (!solar?.year || !solar.month || !solar.day) return;
     setSelected(solar);
     setTab('today');
-    setShowSteps(false);
     setShowGioList(false);
   };
 
@@ -131,7 +128,6 @@ function AppShell() {
     : undefined;
 
   const onPressTab = (id: TabId) => {
-    setShowSteps(false);
     setShowGioList(false);
     setTab(id);
   };
@@ -139,13 +135,6 @@ function AppShell() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <View style={styles.body}>
-        {showSteps ? (
-          <StepsScreen
-            fontFamily={fonts?.bodySemi}
-            displayFont={fonts?.display}
-            onBack={() => setShowSteps(false)}
-          />
-        ) : null}
         {showGioList ? (
           <GioListScreen
             fontFamily={fonts?.bodySemi}
@@ -159,7 +148,7 @@ function AppShell() {
             onChanged={() => setMemoRefreshKey((n) => n + 1)}
           />
         ) : null}
-        {!showSteps && !showGioList && tab === 'today' ? (
+        {!showGioList && tab === 'today' ? (
           <HomeScreen
             fonts={fonts}
             selected={selected}
@@ -168,7 +157,7 @@ function AppShell() {
             onMemoChanged={() => setMemoRefreshKey((n) => n + 1)}
           />
         ) : null}
-        {!showSteps && !showGioList && tab === 'month' ? (
+        {!showGioList && tab === 'month' ? (
           <MonthCalendarScreen
             fontFamily={fonts?.bodySemi}
             displayFont={fonts?.display}
@@ -181,14 +170,14 @@ function AppShell() {
             }}
           />
         ) : null}
-        {!showSteps && !showGioList && tab === 'horoscope' ? (
+        {!showGioList && tab === 'horoscope' ? (
           <HoroscopeScreen
             fontFamily={fonts?.bodySemi}
             displayFont={fonts?.display}
             onOpenProfile={() => setTab('profile')}
           />
         ) : null}
-        {!showSteps && !showGioList && tab === 'profile' ? (
+        {!showGioList && tab === 'profile' ? (
           <ProfileScreen
             fontFamily={fonts?.bodySemi}
             stampFont={fonts?.stamp}
