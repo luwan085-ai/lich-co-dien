@@ -94,7 +94,7 @@ function mapQuality(raw: string | undefined, isGoodDay: boolean): {
     return {
       tone: 'poor',
       pathLabel: isGoodDay ? 'Ngày bình thường' : 'Ngày Hắc Đạo',
-      qualityLabel: 'Nên tĩnh dưỡng',
+      qualityLabel: 'Nên nhẹ nhàng',
     };
   }
   return {

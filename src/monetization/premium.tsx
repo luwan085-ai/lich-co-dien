@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { monetizationConfig, purchaseBackend } from './config';
+import { PaywallModal } from './PaywallModal';
 import {
   configurePurchases,
   purchaseMonthlyViaStore,
@@ -28,6 +29,10 @@ type PremiumContextValue = {
   /** mock until RC keys land */
   purchaseMode: 'mock' | 'revenuecat';
   stampSkin: StampSkin;
+  paywallVisible: boolean;
+  paywallReason?: string;
+  openPaywall: (reason?: string) => void;
+  closePaywall: () => void;
   purchaseMonthly: () => Promise<boolean>;
   restore: () => Promise<boolean>;
   setPremiumMock: (on: boolean) => Promise<void>;
@@ -40,6 +45,10 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [stampSkin, setStampSkinState] = useState<StampSkin>('classic');
+  const [paywallVisible, setPaywallVisible] = useState(false);
+  const [paywallReason, setPaywallReason] = useState<string | undefined>(
+    undefined,
+  );
   const mode = purchaseBackend();
 
   useEffect(() => {
@@ -73,6 +82,16 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   const setStampSkin = useCallback(async (skin: StampSkin) => {
     setStampSkinState(skin);
     await AsyncStorage.setItem(SKIN_KEY, skin);
+  }, []);
+
+  const openPaywall = useCallback((reason?: string) => {
+    setPaywallReason(reason);
+    setPaywallVisible(true);
+  }, []);
+
+  const closePaywall = useCallback(() => {
+    setPaywallVisible(false);
+    setPaywallReason(undefined);
   }, []);
 
   const purchaseMonthly = useCallback(async () => {
@@ -109,6 +128,10 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
       pricing: monetizationConfig.pricing,
       purchaseMode: mode,
       stampSkin: isPremium ? stampSkin : 'classic',
+      paywallVisible,
+      paywallReason,
+      openPaywall,
+      closePaywall,
       purchaseMonthly,
       restore,
       setPremiumMock: persistPremium,
@@ -119,6 +142,10 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
       isPremium,
       mode,
       stampSkin,
+      paywallVisible,
+      paywallReason,
+      openPaywall,
+      closePaywall,
       purchaseMonthly,
       restore,
       persistPremium,
@@ -127,7 +154,16 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <PremiumContext.Provider value={value}>{children}</PremiumContext.Provider>
+    <PremiumContext.Provider value={value}>
+      {children}
+      <PaywallModal
+        visible={paywallVisible}
+        reason={paywallReason}
+        onClose={closePaywall}
+        onPurchase={purchaseMonthly}
+        onRestore={restore}
+      />
+    </PremiumContext.Provider>
   );
 }
 

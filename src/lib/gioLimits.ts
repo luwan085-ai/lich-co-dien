@@ -3,7 +3,7 @@ import { hydrateMemo } from './localMemos';
 import { listUniqueGio, type GioAdvanceDays } from './gioSchedule';
 
 /** Free tier cap — Premium removes limit. */
-export const FREE_ANNIV_LIMIT = 5;
+export const FREE_ANNIV_LIMIT = 3;
 
 export function countUniqueAnniversaries(map: Record<string, DayMemo>): number {
   return listUniqueGio(map).length;
@@ -23,7 +23,7 @@ export function canAddAnniversary(
   if (countUniqueAnniversaries(map) >= FREE_ANNIV_LIMIT) {
     return {
       ok: false,
-      message: `Miễn phí tối đa ${FREE_ANNIV_LIMIT} giỗ/sinh nhật âm. Nâng cấp Premium để thêm không giới hạn.`,
+      message: `Miễn phí tối đa ${FREE_ANNIV_LIMIT} ngày âm lịch cá nhân. Nâng cấp Premium để thêm không giới hạn.`,
     };
   }
   return { ok: true };

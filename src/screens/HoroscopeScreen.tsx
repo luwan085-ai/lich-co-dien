@@ -104,7 +104,7 @@ export function HoroscopeScreen({
             </Pressable>
           ) : null}
           <Text style={styles.heroLegal}>
-            Luận giải mang tính giải trí · không thay thế tư vấn chuyên môn
+            Nội dung giải trí, không quyết định thay bạn
           </Text>
           <Text style={styles.meta}>
             {data.yearHeadline}
@@ -199,8 +199,7 @@ export function HoroscopeScreen({
         <HoroscopeEntertainmentSection day={day} fontFamily={fontFamily} />
 
         <Text style={styles.footerLegal}>
-          Nội dung giải trí · không thay thế tư vấn chuyên môn. Người dưới 18 tuổi
-          không tham gia xổ số.
+          Nội dung giải trí · không thay thế tư vấn chuyên môn · không quyết định thay bạn. Người dưới 18 tuổi không tham gia xổ số.
         </Text>
       </ScrollView>
       <AdOverlay />

@@ -8,11 +8,11 @@
 
 ## 부제 (iOS subtitle, 30자 이내)
 
-Âm lịch · Giỗ · Rằm
+Âm lịch · Ngày tốt · Giỗ
 
 ## 짧은 설명 (Google Play, ~80자)
 
-Tờ lịch giấy xé đẹp — âm lịch, giỗ, Rằm, giá vàng & xăng mỗi sáng.
+Tờ lịch âm đẹp — xem ngày tốt, giờ tốt, nhắc giỗ & sinh nhật âm lịch.
 
 ## 긴 설명 (베트남어)
 
@@ -21,18 +21,18 @@ Tờ lịch giấy xé đẹp — âm lịch, giỗ, Rằm, giá vàng & xăng m
 **Mỗi sáng bạn biết ngay**
 - Hôm nay là ngày Hoàng Đạo hay Hắc Đạo — Nên / Tránh gì
 - Giờ hoàng đạo và hướng xuất hành
-- Rằm, Mùng Một, giỗ và sinh nhật âm sắp tới
+- Rằm, Mùng Một, giỗ và sinh nhật âm lịch sắp tới
 
 **Cá nhân hóa**
 - Vuốt để xé sang ngày mới — cảm giác lịch bloc thật
-- Ghi chú, giỗ âm & sinh nhật âm — nhắc hằng năm theo âm lịch (7:30 sáng giờ VN)
+- Ghi chú, giỗ & sinh nhật âm lịch — nhắc hằng năm theo âm lịch (7:30 sáng giờ VN)
 - Dấu đóng cảm xúc, cam kết ngắn mỗi ngày
 
 **Tiện ích nhẹ**
 - Giá vàng SJC & xăng Petrolimex (Vùng 1/2)
 - Tử vi vui, Bói quẻ — giải trí, không thay thế tư vấn chuyên nghiệp
 
-Không quảng cáo chen lấn trên tờ lịch. Premium (sắp ra) gỡ quảng cáo & giao diện vàng.
+Premium dành cho người muốn lưu ngày âm của cả gia đình: không giới hạn ngày âm cá nhân, nhắc trước 3/7 ngày, giao diện giấy & màu mực Premium.
 
 ---
 

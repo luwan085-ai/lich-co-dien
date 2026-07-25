@@ -15,12 +15,12 @@ export const monetizationConfig = {
     /** Google sample rewarded unit for debug builds */
     testRewardedUnitId: 'ca-app-pub-3940256099942544/5224354917',
   },
-  priceLabel: '199.000₫/năm',
+  priceLabel: '99.000₫ trọn đời',
   pricing: {
-    annual: '199.000₫/năm',
-    monthlyHint: 'hoặc 25.000₫/tháng',
-    lifetimeTitle: 'Mở trọn đời',
-    lifetimePrice: '399.000₫ một lần',
+    annual: '99.000₫ trọn đời',
+    monthlyHint: 'Thanh toán 1 lần duy nhất · Mở khóa vĩnh viễn',
+    lifetimeTitle: 'Gói Trọn Đời',
+    lifetimePrice: '99.000₫ một lần',
   },
 } as const;
 

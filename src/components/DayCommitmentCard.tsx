@@ -117,7 +117,7 @@ export function DayCommitmentCard({
       {!embedded ? (
         <>
           <Text style={[styles.title, fontFamily ? { fontFamily } : null]}>
-            CAM KẾT NGÀY · 10 CHỮ
+            Ý NGUYỆN HÔM NAY · 10 CHỮ
           </Text>
           <Text style={styles.sub}>
             Viết ít nhất {MIN_LEN} ký tự → đóng dấu tự động (Làm tốt lắm / Giỏi

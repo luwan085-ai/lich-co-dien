@@ -11,8 +11,10 @@ import { CalendarMount } from '../components/CalendarMount';
 import { DayCommitmentCard } from '../components/DayCommitmentCard';
 import { DayMemoCard } from '../components/DayMemoCard';
 import { DayPulseCompact } from '../components/DayPulseCompact';
+import { Ionicons } from '@expo/vector-icons';
 import { ShareDayCard } from '../components/ShareDayCard';
 import { UpcomingLunarCard } from '../components/UpcomingLunarCard';
+import { GoodDaysModal } from '../components/GoodDaysModal';
 import {
   TearablePaper,
   type TearablePaperHandle,
@@ -58,6 +60,7 @@ export function HomeScreen({
   const [wishText, setWishText] = useState('');
   const [viewportH, setViewportH] = useState(0);
   const [gioTick, setGioTick] = useState(0);
+  const [goodDaysOpen, setGoodDaysOpen] = useState(false);
   const onWishTextChange = useCallback((t: string) => {
     setWishText(t);
   }, []);
@@ -145,17 +148,7 @@ export function HomeScreen({
                 <View style={[styles.tape, styles.tapeTR]} />
               </>
             ) : null}
-            <CalendarMount wishText={wishText} fontFamily={fonts?.bodySemi}>
-              <DayCommitmentCard
-                dateKey={selectedKey}
-                solar={selected}
-                isToday={isToday}
-                fontFamily={fonts?.bodySemi}
-                embedded
-                onTextChange={onWishTextChange}
-                onStamped={setPraiseStamp}
-              />
-            </CalendarMount>
+            <CalendarMount fontFamily={fonts?.bodySemi} />
             <TearablePaper
               ref={tearRef}
               fill
@@ -184,7 +177,7 @@ export function HomeScreen({
                 </Text>
               </Pressable>
             ) : (
-              <Text style={styles.scrollCue}>Vuốt lên · sắp tới & giỗ</Text>
+              <Text style={styles.scrollCue}>Vuốt lên · sắp tới & ngày âm</Text>
             )}
             <Pressable onPress={() => void onShare()}>
               <Text
@@ -213,6 +206,34 @@ export function HomeScreen({
 
         <View style={styles.below}>
           <View style={styles.block}>
+            <View style={styles.todayGuide}>
+              <Text style={[styles.guideKicker, fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null]}>
+                GỢI Ý HÔM NAY
+              </Text>
+              <View style={styles.guideRow}>
+                <Pressable
+                  style={styles.guideItem}
+                  onPress={() => setGoodDaysOpen(true)}
+                >
+                  <Ionicons name="sparkles-outline" size={15} color={colors.crimson} />
+                  <Text style={styles.guideText}>Xem ngày tốt ›</Text>
+                </Pressable>
+                <View style={styles.guideItem}>
+                  <Ionicons name="moon-outline" size={15} color={colors.crimson} />
+                  <Text style={styles.guideText}>Lưu ngày âm</Text>
+                </View>
+                <View style={styles.guideItem}>
+                  <Ionicons name="share-social-outline" size={15} color={colors.crimson} />
+                  <Text style={styles.guideText}>Chia sẻ tờ lịch</Text>
+                </View>
+              </View>
+              <Text style={styles.guideTrust}>
+                Thông tin tham khảo theo lịch âm Việt Nam · phong tục có thể khác theo vùng miền.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.block}>
             <UpcomingLunarCard
               refreshKey={gioTick}
               fontFamily={fonts?.bodySemi}
@@ -238,6 +259,17 @@ export function HomeScreen({
           </View>
 
           <View style={styles.block}>
+            <DayCommitmentCard
+              dateKey={selectedKey}
+              solar={selected}
+              isToday={isToday}
+              fontFamily={fonts?.bodySemi}
+              onTextChange={onWishTextChange}
+              onStamped={setPraiseStamp}
+            />
+          </View>
+
+          <View style={styles.block}>
             <Text style={[styles.utilKicker, fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null]}>
               TIỆN ÍCH HÀNG NGÀY
             </Text>
@@ -245,6 +277,14 @@ export function HomeScreen({
           </View>
         </View>
       </ScrollView>
+
+      <GoodDaysModal
+        visible={goodDaysOpen}
+        onClose={() => setGoodDaysOpen(false)}
+        onSelectDay={onChangeSelected}
+        fontFamily={fonts?.bodySemi}
+        displayFont={fonts?.display}
+      />
     </View>
   );
 }
@@ -324,6 +364,51 @@ const styles = StyleSheet.create({
   },
   block: {
     marginTop: 8,
+  },
+  todayGuide: {
+    backgroundColor: '#FFFBF5',
+    borderWidth: 1,
+    borderColor: 'rgba(196, 30, 58, 0.18)',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  guideKicker: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.7,
+    color: colors.crimson,
+    marginBottom: 9,
+  },
+  guideRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  guideItem: {
+    flex: 1,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(196, 30, 58, 0.18)',
+    backgroundColor: colors.paper,
+    paddingHorizontal: 8,
+    paddingVertical: 9,
+    alignItems: 'center',
+    gap: 5,
+  },
+  guideText: {
+    fontSize: 10,
+    lineHeight: 14,
+    textAlign: 'center',
+    fontWeight: '800',
+    color: colors.inkMuted,
+  },
+  guideTrust: {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(196, 30, 58, 0.14)',
+    fontSize: 10,
+    lineHeight: 15,
+    fontWeight: '600',
+    color: colors.inkFaint,
   },
   utilKicker: {
     fontSize: 10,

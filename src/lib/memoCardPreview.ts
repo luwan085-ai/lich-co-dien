@@ -21,7 +21,7 @@ function shortLabel(label: string, max = 28): string {
   return `${t.slice(0, max - 1)}…`;
 }
 
-/** Collapsed GHI CHÚ / GIỖ LỄ strip — giỗ-first, two lines. */
+/** Collapsed GHI CHÚ / NGÀY ÂM strip — personal lunar dates first, two lines. */
 export function buildMemoCardPreview(
   nearest: UpcomingLunarEvent | null,
   memoText: string,
@@ -33,12 +33,12 @@ export function buildMemoCardPreview(
     if (nearest.daysUntil === 0) {
       if (nearest.kind === 'birthday') {
         return {
-          headline: `Hôm nay có sinh nhật âm ${lunar}`,
+          headline: `Hôm nay có sinh nhật âm lịch ${lunar}`,
           detail: solarLine,
         };
       }
       return {
-        headline: `Hôm nay có giỗ âm ${lunar}`,
+        headline: `Hôm nay có giỗ âm lịch ${lunar}`,
         detail: solarLine,
       };
     }
@@ -70,7 +70,7 @@ export function buildMemoCardPreview(
   }
 
   return {
-    headline: 'Bắt đầu: thêm giỗ hoặc sinh nhật âm',
-    detail: `Nhận nhắc hằng năm · ${TAP}`,
+    headline: 'Bắt đầu: thêm giỗ hoặc sinh nhật âm lịch',
+    detail: `Nhắc hằng năm theo âm lịch · ${TAP}`,
   };
 }

@@ -18,7 +18,7 @@ const LOTS = [
   },
   {
     name: 'Nên lánh',
-    meaning: 'Hôm nay hợp tĩnh dưỡng, tránh khẩu thiệt.',
+    meaning: 'Hôm nay nên nhẹ nhàng, tránh lời qua tiếng lại.',
   },
   {
     name: 'Được lộc',

@@ -54,16 +54,17 @@ const SKINS: { id: StampSkin; label: string; premium?: boolean }[] = [
 ];
 
 const PREMIUM_BENEFITS = [
-  'Giỗ & sinh nhật âm không giới hạn',
+  'Dành cho người muốn lưu ngày âm của cả gia đình',
+  'Ngày âm lịch cá nhân không giới hạn',
   'Nhắc trước 1/3/7 ngày',
   'Không quảng cáo',
-  'Ghim widget & da giấy Premium',
+  'Ghim widget & kiểu giấy Premium',
 ] as const;
 
 const PRIVACY_BODY = `Lịch Cổ Điển ưu tiên lưu cục bộ trên máy bạn.
 
-• Ghi chú, giỗ âm lịch, cam kết / dấu đóng — lưu trên thiết bị
-• Nhắc Rằm / Mùng Một / Giỗ — lịch thông báo cục bộ
+• Ghi chú, ngày âm lịch cá nhân, cam kết / dấu đóng — lưu trên thiết bị
+• Nhắc Rằm / Mùng Một / ngày âm cá nhân — lịch thông báo cục bộ
 • Giá vàng / xăng / tin — chỉ khi có mạng (có bản offline)
 • Quảng cáo & mua Premium — qua store chính thức
 
@@ -80,6 +81,7 @@ export function ProfileScreen({
     pricing,
     purchaseMode,
     stampSkin,
+    openPaywall,
     purchaseMonthly,
     restore,
     setPremiumMock,
@@ -162,9 +164,8 @@ export function ProfileScreen({
 
   const pickAdvance = async (days: GioAdvanceDays) => {
     if (!isAdvanceAllowed(days, isPremium)) {
-      Alert.alert(
-        'Premium',
-        'Nhắc trước 3/7 ngày dành cho Premium. Miễn phí: chỉ ngày giỗ hoặc 1 ngày trước.',
+      openPaywall(
+        'Nhắc trước 3/7 ngày dành cho Premium. Miễn phí: chỉ đúng ngày hoặc 1 ngày trước.',
       );
       return;
     }
@@ -180,7 +181,7 @@ export function ProfileScreen({
     if (Platform.OS === 'web') {
       Alert.alert(
         'Chỉ trên máy thật',
-        'Nhắc giỗ âm lịch cần bản iOS hoặc Android.',
+        'Nhắc ngày âm lịch cần bản iOS hoặc Android.',
       );
       return;
     }
@@ -199,10 +200,10 @@ export function ProfileScreen({
       setGioOn(next);
       if (next) {
         Alert.alert(
-          'Đã bật nhắc giỗ',
+          'Đã bật nhắc ngày âm',
           n > 0
-            ? `Đã lên lịch ${n} buổi sáng giỗ (7:30 giờ VN · theo âm lịch).`
-            : 'Chưa có giỗ hoặc sinh nhật âm. Vào Hôm nay → Ghi chú / Giỗ lễ để chọn loại.',
+            ? `Đã lên lịch ${n} buổi sáng ngày âm (7:30 giờ VN · theo âm lịch).`
+            : 'Chưa có giỗ hoặc sinh nhật âm. Vào Hôm nay → Ghi chú / Ngày âm để chọn loại.',
         );
       }
     } finally {
@@ -225,9 +226,8 @@ export function ProfileScreen({
 
   const pickSkin = async (skin: StampSkin) => {
     if (skin !== 'classic' && !isPremium) {
-      Alert.alert(
-        'Premium',
-        'Mực vàng & băng keo dán dành cho Premium. Nâng cấp ở mục Premium bên dưới.',
+      openPaywall(
+        'Mực vàng & băng keo dán dành cho Premium. Nâng cấp để trải nghiệm kiểu dán đặc biệt.',
       );
       return;
     }
@@ -245,9 +245,23 @@ export function ProfileScreen({
       </Text>
       <Text style={styles.title}>{storeConfig.displayName}</Text>
       <Text style={styles.body}>
-        Thiết lập tuổi, nhắc giỗ, cảm xúc và dấu mộc — mọi thứ lưu trên máy
+        Thiết lập tuổi, nhắc ngày âm, cảm xúc và dấu khen — mọi thứ lưu trên máy
         bạn.
       </Text>
+      <View style={styles.quickStart}>
+        <Text style={[styles.quickTitle, fontFamily ? { fontFamily } : null]}>
+          Bắt đầu với 3 bước
+        </Text>
+        <Text style={styles.quickLine}>
+          1. Nhập năm sinh để xem Tử vi hôm nay
+        </Text>
+        <Text style={styles.quickLine}>
+          2. Thêm giỗ hoặc sinh nhật âm lịch
+        </Text>
+        <Text style={styles.quickLine}>
+          3. Bật nhắc hằng năm lúc 7:30 giờ VN
+        </Text>
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Tử vi cá nhân</Text>
@@ -255,9 +269,9 @@ export function ProfileScreen({
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Nhắc Giỗ âm lịch</Text>
+        <Text style={styles.cardTitle}>Nhắc ngày âm lịch</Text>
         <Text style={styles.line}>
-          Ngày bạn đánh dấu giỗ hoặc sinh nhật âm sẽ nhắc lại mỗi năm theo âm (7:30 giờ VN) — kể cả
+          Giỗ hoặc sinh nhật âm lịch sẽ nhắc lại mỗi năm theo âm lịch (7:30 giờ VN) — kể cả
           khi dương lịch lệch.
         </Text>
         <Text style={[styles.line, styles.advanceLabel]}>
@@ -265,7 +279,7 @@ export function ProfileScreen({
         </Text>
         {!isPremium ? (
           <Text style={styles.tierHint}>
-            Miễn phí: tối đa {FREE_ANNIV_LIMIT} giỗ/sinh nhật · nhắc 1 ngày trước
+            Miễn phí: tối đa {FREE_ANNIV_LIMIT} ngày âm cá nhân · nhắc 1 ngày trước
           </Text>
         ) : null}
         <View style={styles.advanceRow}>
@@ -300,7 +314,7 @@ export function ProfileScreen({
               ? 'Đang lên lịch…'
               : gioOn
                 ? 'Đang bật · chạm để tắt'
-                : 'Bật nhắc giỗ trên máy'}
+                : 'Bật nhắc ngày âm trên máy'}
           </Text>
         </Pressable>
         <Pressable style={styles.listLink} onPress={onOpenGioList}>
@@ -337,7 +351,7 @@ export function ProfileScreen({
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Mộc khen ngợi</Text>
+        <Text style={styles.cardTitle}>Dấu khen hôm nay</Text>
         <Text style={styles.line}>
           Đóng dấu khen trên tờ lịch hôm nay — ghi lại ngày làm tốt của bạn.
         </Text>
@@ -345,9 +359,9 @@ export function ProfileScreen({
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Da dấu / giấy</Text>
+        <Text style={styles.cardTitle}>Kiểu giấy & màu mực</Text>
         <Text style={styles.line}>
-          Đổi mực đóng dấu trên tờ lịch. Vàng & băng keo cần Premium.
+          Đổi màu mực và kiểu giấy trên tờ lịch. Vàng & băng keo cần Premium.
         </Text>
         <View style={styles.skinRow}>
           {SKINS.map((s) => {
@@ -370,60 +384,44 @@ export function ProfileScreen({
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Premium</Text>
-        {!ready ? (
-          <ActivityIndicator color={colors.crimson} />
-        ) : isPremium ? (
-          <>
-            <Text style={styles.premiumOn}>Đang dùng Premium</Text>
-            {PREMIUM_BENEFITS.map((line) => (
-              <Text key={line} style={styles.line}>
-                • {line}
-              </Text>
-            ))}
-            {__DEV__ ? (
-              <Pressable
-                style={styles.secondaryBtn}
-                onPress={() => void setPremiumMock(false)}
-              >
-                <Text style={styles.secondaryText}>Hủy bản thử (dev)</Text>
-              </Pressable>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <Text style={styles.price}>{pricing.annual}</Text>
-            <Text style={styles.priceHint}>{pricing.monthlyHint}</Text>
-            {PREMIUM_BENEFITS.map((line) => (
-              <Text key={line} style={styles.line}>
-                • {line}
-              </Text>
-            ))}
-            <Pressable
-              style={[styles.cta, busy && styles.ctaDisabled]}
-              onPress={() => void buy()}
-              disabled={busy}
-            >
-              <Text style={[styles.ctaText, fontFamily ? { fontFamily } : null]}>
-                {busy ? 'Đang xử lý…' : 'Nâng cấp Premium'}
-              </Text>
-            </Pressable>
-            <Pressable style={styles.secondaryBtn} onPress={() => void doRestore()}>
-              <Text style={styles.secondaryText}>Khôi phục mua hàng</Text>
-            </Pressable>
-            <Text style={styles.lifetimeTitle}>{pricing.lifetimeTitle}</Text>
-            <Text style={styles.priceHint}>{pricing.lifetimePrice}</Text>
-            {__DEV__ && purchaseMode === 'mock' ? (
-              <Text style={styles.hint}>Chế độ thử · chỉ hiện khi dev build</Text>
-            ) : null}
-          </>
-        )}
+        <Text style={styles.cardTitle}>Widget & tiện ích</Text>
+        <Text style={styles.line}>
+          Hiện tại: ghim Giá vàng / Xăng dầu và Tin mới trong app.
+        </Text>
+        <Text style={styles.line}>
+          Sắp tới: widget màn hình chính để xem âm lịch, giờ tốt và ngày âm gia đình.
+        </Text>
       </View>
+
+      <Pressable style={styles.card} onPress={() => openPaywall()}>
+        <View style={styles.premiumHeaderRow}>
+          <Text style={styles.cardTitle}>Tài khoản & Premium</Text>
+          <Text style={styles.premiumStatusText}>
+            {isPremium ? 'Premium ✓' : 'Bản Miễn Phí ›'}
+          </Text>
+        </View>
+        <Text style={styles.line}>
+          {isPremium
+            ? 'Bạn đang sử dụng đầy đủ các tính năng Premium.'
+            : 'Nhấn để xem thông tin gói Premium & mở khóa tính năng.'}
+        </Text>
+        {__DEV__ && isPremium ? (
+          <Pressable
+            style={styles.secondaryBtn}
+            onPress={(e) => {
+              e.stopPropagation();
+              void setPremiumMock(false);
+            }}
+          >
+            <Text style={styles.secondaryText}>Hủy bản thử (dev)</Text>
+          </Pressable>
+        ) : null}
+      </Pressable>
 
       <Pressable style={styles.card} onPress={() => void openPrivacy()}>
         <Text style={styles.cardTitle}>Chính sách bảo mật</Text>
         <Text style={styles.line}>
-          Local-first · giỗ / memo trên máy · mở bản đầy đủ
+          Lưu trên máy của bạn · ghi chú / ngày âm cá nhân · mở bản đầy đủ
         </Text>
       </Pressable>
 
@@ -491,6 +489,27 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
   },
+  quickStart: {
+    marginTop: 14,
+    backgroundColor: '#FFFBF5',
+    borderWidth: 1,
+    borderColor: 'rgba(196, 30, 58, 0.18)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  quickTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.4,
+    color: colors.crimson,
+    marginBottom: 6,
+  },
+  quickLine: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.inkMuted,
+    fontWeight: '700',
+  },
   card: {
     marginTop: 14,
     padding: 14,
@@ -503,11 +522,29 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginBottom: 8,
   },
+  premiumHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  premiumStatusText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.crimson,
+    marginBottom: 8,
+  },
   premiumOn: {
     color: colors.goldDeep,
     fontWeight: '800',
     fontSize: 15,
     marginBottom: 6,
+  },
+  premiumLead: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: '800',
+    color: colors.crimsonDeep,
+    marginBottom: 10,
   },
   price: {
     fontSize: 22,

@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { CalendarDay } from '../lunar/today';
 import { storeConfig } from '../config/store';
+import { posterSummaryBar, statusDigestLine } from '../lib/dayDigest';
 import { colors } from '../theme/tokens';
 import { HoaBeNgoan, type FlowerFace } from './HoaBeNgoan';
 import { stampInkForSkin } from '../lib/stampInk';
@@ -53,7 +54,10 @@ export const ShareDayCard = forwardRef<View, Props>(function ShareDayCard(
       <Text style={styles.lunar}>
         Âm {day.lunar.day} · {day.lunar.monthLabel}
       </Text>
-      <Text style={styles.quality}>{day.qualityLabel}</Text>
+      <Text style={styles.quality}>{statusDigestLine(day)}</Text>
+      <View style={styles.summaryBox}>
+        <Text style={styles.summary}>{posterSummaryBar(day)}</Text>
+      </View>
       <Text style={styles.quote} numberOfLines={3}>
         “{day.quote.text}”
       </Text>
@@ -71,7 +75,7 @@ export const ShareDayCard = forwardRef<View, Props>(function ShareDayCard(
           </Text>
         </View>
       ) : null}
-      <Text style={styles.watermark}>{storeConfig.displayName}</Text>
+      <Text style={styles.watermark}>Tạo bởi {storeConfig.displayName}</Text>
     </View>
   );
 });
@@ -127,6 +131,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
     color: colors.goldDeep,
+  },
+  summaryBox: {
+    marginTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(196, 30, 58, 0.18)',
+    paddingVertical: 8,
+  },
+  summary: {
+    fontSize: 11,
+    lineHeight: 16,
+    fontWeight: '700',
+    color: colors.crimsonDeep,
+    textAlign: 'center',
   },
   quote: {
     marginTop: 14,

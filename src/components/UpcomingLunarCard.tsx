@@ -22,7 +22,7 @@ const KIND_DOT: Record<UpcomingLunarEvent['kind'], string> = {
   birthday: '#7C3AED',
 };
 
-/** Sắp tới — giỗ cá nhân first, then Rằm / Mùng Một. */
+/** Sắp tới — ngày âm cá nhân first, then Rằm / Mùng Một. */
 export function UpcomingLunarCard({
   fontFamily,
   refreshKey = 0,
@@ -60,7 +60,7 @@ export function UpcomingLunarCard({
         </Text>
         {onOpenList ? (
           <Pressable hitSlop={8} onPress={onOpenList}>
-            <Text style={styles.more}>Tất cả ›</Text>
+            <Text style={styles.more}>Giỗ & sinh nhật ›</Text>
           </Pressable>
         ) : null}
       </View>
@@ -89,10 +89,10 @@ export function UpcomingLunarCard({
       {!hasPersonal ? (
         <View style={styles.ctaBox}>
           <Text style={[styles.ctaTitle, fontFamily ? { fontFamily } : null]}>
-            Thêm ngày giỗ đầu tiên
+            Thêm giỗ hoặc sinh nhật âm đầu tiên
           </Text>
           <Text style={styles.ctaBody}>
-            Vuốt xuống · Ghi chú / Giỗ lễ → chọn Giỗ âm hoặc Sinh nhật âm
+            Kéo xuống phần Ghi chú / Ngày âm để lưu theo âm lịch và nhắc hằng năm
           </Text>
         </View>
       ) : null}

@@ -5,7 +5,7 @@ describe('personalEventLine', () => {
   it('shows empty copy when no personal event', () => {
     expect(
       personalEventLine(null, { year: 2026, month: 7, day: 20 }),
-    ).toBe('Không có giỗ/sinh nhật trong ngày này');
+    ).toBe('Không có ngày âm cá nhân trong ngày này');
   });
 
   it('labels giỗ with custom text', () => {

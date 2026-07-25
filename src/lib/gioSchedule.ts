@@ -27,7 +27,7 @@ export const GIO_ADVANCE_OPTIONS: {
   value: GioAdvanceDays;
   label: string;
 }[] = [
-  { value: 0, label: 'Chỉ ngày giỗ' },
+  { value: 0, label: 'Chỉ đúng ngày' },
   { value: 1, label: '1 ngày trước' },
   { value: 3, label: '3 ngày trước' },
   { value: 7, label: '7 ngày trước' },
@@ -116,7 +116,7 @@ export function listUniqueGio(map: Record<string, DayMemo>): GioItem[] {
       lunar: memo.lunar,
       label:
         memo.text.trim() ||
-        (memo.annivKind === 'birthday' ? 'Sinh nhật âm' : 'Giỗ âm lịch'),
+        (memo.annivKind === 'birthday' ? 'Sinh nhật âm lịch' : 'Giỗ âm lịch'),
       annivKind: memo.annivKind ?? inferAnnivKind(memo.text),
       dateKey,
     });
@@ -140,7 +140,7 @@ export function labelForLunarGio(
       return memo.text.trim().slice(0, 80);
     }
   }
-  return 'Nhớ chuẩn bị lễ giỗ theo âm lịch.';
+  return 'Nhớ chuẩn bị ngày âm lịch cá nhân.';
 }
 
 /** Next solar date on or after `from` for this lunar giỗ. */

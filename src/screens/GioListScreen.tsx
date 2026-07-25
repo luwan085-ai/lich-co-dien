@@ -92,10 +92,10 @@ export function GioListScreen({
         GIỖ & SINH NHẬT ÂM
       </Text>
       <Text style={[styles.title, displayFont ? { fontFamily: displayFont } : null]}>
-        Danh sách giỗ & sinh nhật
+        Danh sách ngày âm cá nhân
       </Text>
       <Text style={styles.sub}>
-        Chạm hàng để mở ngày tiếp theo · Sửa/Xóa để quản lý.
+        Chạm vào một mục để mở ngày sắp tới · Sửa/Xóa để quản lý.
       </Text>
 
       {loading ? (
@@ -104,7 +104,7 @@ export function GioListScreen({
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>Chưa có giỗ hoặc sinh nhật âm</Text>
           <Text style={styles.emptyLine}>
-            Vào Hôm nay → Ghi chú / Giỗ lễ → chọn Giỗ âm hoặc Sinh nhật âm.
+            Vào Hôm nay → Ghi chú / Ngày âm → chọn Giỗ âm lịch hoặc Sinh nhật âm lịch.
           </Text>
         </View>
       ) : (
@@ -154,7 +154,7 @@ export function GioListScreen({
                     style={styles.actionBtn}
                     onPress={() => openEditDay(item)}
                   >
-                    <Text style={styles.actionText}>Sửa</Text>
+                    <Text style={styles.actionText}>Mở để sửa</Text>
                   </Pressable>
                   <Pressable
                     style={[styles.actionBtn, styles.actionDanger]}

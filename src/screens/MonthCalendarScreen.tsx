@@ -230,9 +230,9 @@ export function MonthCalendarScreen({
       </View>
 
       <View style={styles.legend}>
-        <LegendDot color={DOT.great} label="Hoàng / Cát" />
-        <LegendDot color={DOT.neutral} label="Bình" />
-        <LegendBar label="Giỗ âm" />
+        <LegendDot color={DOT.great} label="Ngày tốt" />
+        <LegendDot color={DOT.neutral} label="Bình thường" />
+        <LegendBar label="Giỗ âm lịch" />
         <LegendStar label="Sinh nhật" />
       </View>
 

@@ -50,12 +50,17 @@ export function DayPulseCompact({ day, fontFamily }: Props) {
         </View>
       </View>
       {open ? (
-        <HoangHourChips
-          hours={day.hoangHours}
-          fontFamily={fontFamily}
-          size="md"
-          layout="grid"
-        />
+        <>
+          <HoangHourChips
+            hours={day.hoangHours}
+            fontFamily={fontFamily}
+            size="md"
+            layout="grid"
+          />
+          <Text style={styles.trustNote}>
+            Giờ tốt mang tính tham khảo cho việc nhẹ, khai trương, xuất hành.
+          </Text>
+        </>
       ) : null}
     </Pressable>
   );
@@ -98,5 +103,15 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     color: colors.crimsonDeep,
+  },
+  trustNote: {
+    marginTop: 9,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(138, 127, 114, 0.22)',
+    fontSize: 10,
+    lineHeight: 15,
+    color: colors.inkFaint,
+    fontWeight: '600',
   },
 });

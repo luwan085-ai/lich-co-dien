@@ -25,7 +25,7 @@ export function personalEventOnLunar(
   }
   return {
     kind,
-    label: kind === 'birthday' ? 'Sinh nhật âm' : 'Giỗ âm lịch',
+    label: kind === 'birthday' ? 'Sinh nhật âm lịch' : 'Giỗ âm lịch',
   };
 }
 
@@ -34,12 +34,12 @@ export function personalEventLine(
   solar: SolarDate,
 ): string {
   if (!event) {
-    return 'Không có giỗ/sinh nhật trong ngày này';
+    return 'Không có ngày âm cá nhân trong ngày này';
   }
   const today = getVietnamSolarToday();
   const suffix = isSameSolar(solar, today) ? ' · hôm nay' : '';
   const prefix = event.kind === 'birthday' ? 'Sinh nhật' : 'Giỗ';
-  if (event.label === 'Sinh nhật âm' || event.label === 'Giỗ âm lịch') {
+  if (event.label === 'Sinh nhật âm lịch' || event.label === 'Giỗ âm lịch') {
     return `${prefix} âm${suffix}`;
   }
   return `${prefix} ${event.label}${suffix}`;

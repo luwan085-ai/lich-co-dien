@@ -104,7 +104,7 @@ describe('listUniqueGio', () => {
     };
 
     const items = listUniqueGio(map);
-    expect(items[0]?.label).toBe('Sinh nhật âm');
+    expect(items[0]?.label).toBe('Sinh nhật âm lịch');
     expect(items[0]?.annivKind).toBe('birthday');
   });
 });

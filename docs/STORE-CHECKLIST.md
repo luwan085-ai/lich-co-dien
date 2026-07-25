@@ -22,7 +22,7 @@
 - [ ] Icon / adaptive icon final art (assets hiện có — review trước submit)
 
 ### Sản phẩm
-- [ ] Premium entitlement `premium`, gói 25.000₫/tháng trên App Store / Play
+- [ ] Premium entitlement `premium`, gói 99.000₫ trọn đời trên App Store / Play
 - [ ] Rewarded unit gắn tử vi (`useRewardedAdGate`)
 - [ ] Test: mock mode không còn dùng trên production build có key
 

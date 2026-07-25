@@ -172,6 +172,26 @@ export function CalendarPaper({
 
         {compact ? (
           <View style={styles.digestBlock}>
+            <View style={styles.quoteBox}>
+              <Text
+                style={[
+                  styles.quoteText,
+                  fonts?.quote ? { fontFamily: fonts.quote } : null,
+                ]}
+                numberOfLines={2}
+              >
+                “{day.quote.text}”
+              </Text>
+              <Text
+                style={[
+                  styles.quoteAuthor,
+                  body ? { fontFamily: body } : null,
+                ]}
+              >
+                — {day.quote.author}
+              </Text>
+            </View>
+
             <Text
               style={[
                 styles.statusLine,
@@ -421,10 +441,29 @@ const styles = StyleSheet.create({
     color: colors.inkMuted,
   },
   digestBlock: {
-    marginTop: 10,
+    marginTop: 6,
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 4,
+  },
+  quoteBox: {
+    marginBottom: 6,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  quoteText: {
+    fontSize: 11,
+    lineHeight: 16,
+    fontStyle: 'italic',
+    color: colors.ink,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  quoteAuthor: {
+    fontSize: 9,
+    color: colors.inkFaint,
+    marginTop: 2,
+    textAlign: 'center',
   },
   statusLine: {
     fontSize: 11,

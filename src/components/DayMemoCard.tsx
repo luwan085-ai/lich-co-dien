@@ -34,7 +34,7 @@ type Props = {
 };
 
 function lunarAnnivLabel(kind: AnnivKind, day: number, month: number, leap: boolean): string {
-  const prefix = kind === 'birthday' ? 'Sinh nhật âm' : 'Giỗ âm';
+  const prefix = kind === 'birthday' ? 'Sinh nhật âm lịch' : 'Giỗ âm lịch';
   const leapSuffix = leap ? ' nhuận' : '';
   return `${prefix} ${day}/${month}${leapSuffix}`;
 }
@@ -45,7 +45,7 @@ export function DayMemoCard({
   onGioChanged,
   gioRefreshKey = 0,
 }: Props) {
-  const { isPremium } = usePremium();
+  const { isPremium, openPaywall } = usePremium();
   const [text, setText] = useState('');
   const [isAnniversary, setIsAnniversary] = useState(false);
   const [annivKind, setAnnivKind] = useState<AnnivKind | null>(null);
@@ -160,7 +160,7 @@ export function DayMemoCard({
         const map = await loadMemoMap();
         const gate = canAddAnniversary(map, dateKey, true, isPremium);
         if (!gate.ok) {
-          Alert.alert('Giới hạn miễn phí', gate.message);
+          openPaywall(gate.message);
           return false;
         }
       }
@@ -197,8 +197,8 @@ export function DayMemoCard({
   return (
     <CollapsibleStampPanel
       panelId="memo"
-      title="GHI CHÚ / GIỖ LỄ"
-      sub="Ghi chú ngày · chọn Giỗ âm hoặc Sinh nhật âm"
+      title="GHI CHÚ / NGÀY ÂM"
+      sub="Ghi chú ngày · chọn Giỗ âm lịch hoặc Sinh nhật âm lịch"
       summaryHeadline={preview.headline}
       summaryDetail={preview.detail}
       fontFamily={fontFamily}
@@ -206,7 +206,9 @@ export function DayMemoCard({
       {saveFailed ? (
         <Text style={styles.saveFailed}>Chưa lưu được · thử lại</Text>
       ) : savedHint ? (
-        <Text style={styles.saved}>Đã lưu</Text>
+        <Text style={styles.saved}>
+          {isAnniversary ? 'Đã lưu theo âm lịch' : 'Đã lưu ghi chú'}
+        </Text>
       ) : null}
 
       <TextInput
@@ -236,7 +238,7 @@ export function DayMemoCard({
               isAnniversary && annivKind === 'gio' && styles.chipTextOn,
             ]}
           >
-            Giỗ âm
+            Giỗ âm lịch
           </Text>
         </Pressable>
         <Pressable
@@ -252,7 +254,7 @@ export function DayMemoCard({
               isAnniversary && annivKind === 'birthday' && styles.chipTextOn,
             ]}
           >
-            Sinh nhật âm
+            Sinh nhật âm lịch
           </Text>
         </Pressable>
         <Pressable
@@ -267,7 +269,7 @@ export function DayMemoCard({
       {lunarLabel ? (
         <>
           <Text style={styles.lunarHint}>
-            {lunarLabel} · nhắc theo âm lịch (bật trong Cá nhân)
+            {lunarLabel} · nhắc hằng năm lúc 7:30 giờ VN khi bật trong Cá nhân
           </Text>
           {nextLine ? <Text style={styles.nextLine}>{nextLine}</Text> : null}
         </>

@@ -15,6 +15,7 @@ import { AppState, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav, type TabId } from './src/components/BottomNav';
+import { FirstRunOnboarding } from './src/components/FirstRunOnboarding';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { HoroscopeScreen } from './src/screens/HoroscopeScreen';
 import { MonthCalendarScreen } from './src/screens/MonthCalendarScreen';
@@ -192,6 +193,10 @@ function AppShell() {
           onPressTab={onPressTab}
         />
       </SafeAreaView>
+      <FirstRunOnboarding
+        fontFamily={fonts?.bodySemi}
+        displayFont={fonts?.display}
+      />
       <StatusBar style="dark" />
     </SafeAreaView>
   );

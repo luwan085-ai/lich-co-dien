@@ -74,7 +74,7 @@ export function ProfileHoroscopeSection({ fontFamily }: Props) {
   return (
     <View style={styles.wrap}>
       <Text style={styles.sub}>
-        Màn Tử vi sẽ hiển thị “Hôm nay của tuổi …” theo lựa chọn của bạn.
+        Nhập năm sinh để app tự chọn con giáp. Màn Tử vi sẽ hiển thị “Hôm nay của tuổi …”.
       </Text>
       <Text style={[styles.selectedLine, fontFamily ? { fontFamily } : null]}>
         {selectedLine}

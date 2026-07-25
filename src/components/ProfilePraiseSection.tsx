@@ -15,7 +15,7 @@ type Props = {
   stampFont?: string;
 };
 
-/** Mộc khen ngợi — lives in Cá nhân, not home hero. */
+/** Dấu khen hôm nay — lives in Cá nhân, not home hero. */
 export function ProfilePraiseSection({ fontFamily, stampFont }: Props) {
   const { stampSkin } = usePremium();
   const inkColor = stampInkForSkin(stampSkin);

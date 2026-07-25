@@ -9,7 +9,6 @@ import {
   type MarketBoard,
   type PetrolRegion,
 } from '../lib/markets';
-import { fetchDailyNews, type NewsItem } from '../lib/news';
 import {
   loadWidgetPins,
   resetUnpinnedExpanded,
@@ -29,8 +28,6 @@ type Props = {
 export function WidgetTray({ fontFamily, calendarDay }: Props) {
   const { isPremium } = usePremium();
   const [pins, setPins] = useState<WidgetPinState | null>(null);
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [newsLoading, setNewsLoading] = useState(true);
   const [markets, setMarkets] = useState<MarketBoard | null>(null);
   const [marketsLoading, setMarketsLoading] = useState(true);
   const dayKey = solarKey(calendarDay);
@@ -65,21 +62,6 @@ export function WidgetTray({ fontFamily, calendarDay }: Props) {
       return next;
     });
   }, [dayKey, isPremium]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setNewsLoading(true);
-    void (async () => {
-      const items = await fetchDailyNews();
-      if (!cancelled) {
-        setNews(items);
-        setNewsLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -155,16 +137,6 @@ export function WidgetTray({ fontFamily, calendarDay }: Props) {
         onTogglePin={() => togglePin('markets')}
         onRefresh={() => void refreshMarkets()}
         onRegion={setRegion}
-      />
-      <NewsWidget
-        fontFamily={fontFamily}
-        news={news}
-        loading={newsLoading}
-        expanded={pins.expanded.news}
-        pinned={pins.pinned.news}
-        isPremium={isPremium}
-        onToggleExpand={() => toggleExpand('news')}
-        onTogglePin={() => togglePin('news')}
       />
     </View>
   );
@@ -334,92 +306,6 @@ function MarketWidget({
   );
 }
 
-function NewsWidget({
-  fontFamily,
-  news,
-  loading,
-  expanded,
-  pinned,
-  isPremium,
-  onToggleExpand,
-  onTogglePin,
-}: {
-  fontFamily?: string;
-  news: NewsItem[];
-  loading: boolean;
-  expanded: boolean;
-  pinned: boolean;
-  isPremium: boolean;
-  onToggleExpand: () => void;
-  onTogglePin: () => void;
-}) {
-  if (!expanded) {
-    return (
-      <Pressable style={styles.strip} onPress={onToggleExpand}>
-        <View style={styles.stripIcon}>
-          <Ionicons name="newspaper" size={14} color={colors.white} />
-        </View>
-        <Text style={[styles.stripText, fontFamily ? { fontFamily } : null]}>
-          TIN MỚI · chạm để mở
-        </Text>
-        {pinned ? (
-          <Ionicons name="pin" size={14} color={colors.goldDeep} />
-        ) : (
-          <Ionicons name="chevron-down" size={16} color={colors.inkFaint} />
-        )}
-      </Pressable>
-    );
-  }
-
-  return (
-    <View style={styles.card}>
-      <View style={styles.accent} />
-      <View style={styles.header}>
-        <View style={styles.iconBadge}>
-          <Ionicons name="newspaper" size={13} color={colors.white} />
-        </View>
-        <Text
-          style={[styles.title, fontFamily ? { fontFamily } : null, { flex: 1 }]}
-        >
-          TIN MỚI TRONG NGÀY
-        </Text>
-        <Pressable style={styles.iconBtn} onPress={onTogglePin} hitSlop={8}>
-          <Ionicons
-            name={pinned ? 'pin' : 'pin-outline'}
-            size={16}
-            color={pinned ? colors.goldDeep : colors.inkFaint}
-          />
-        </Pressable>
-        <Pressable style={styles.iconBtn} onPress={onToggleExpand} hitSlop={8}>
-          <Ionicons name="chevron-up" size={18} color={colors.inkFaint} />
-        </Pressable>
-      </View>
-
-      {!isPremium && pinned ? (
-        <Text style={styles.pinHint}>
-          Ghim trong ngày · Premium giữ bố cục vĩnh viễn
-        </Text>
-      ) : null}
-
-      {loading ? (
-        <ActivityIndicator style={{ marginVertical: 12 }} color={colors.crimson} />
-      ) : (
-        news.map((item, i) => (
-          <View
-            key={`${item.title}-${i}`}
-            style={[styles.item, i > 0 && styles.itemBorder]}
-          >
-            <Text style={styles.itemSource}>{item.source}</Text>
-            <Text style={[styles.snippet, fontFamily ? { fontFamily } : null]}>
-              {item.title}
-            </Text>
-          </View>
-        ))
-      )}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   stack: { gap: 10 },
   card: {
@@ -547,21 +433,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.inkFaint,
   },
-  item: { paddingVertical: 8 },
   itemBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
-  },
-  itemSource: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.crimson,
-    marginBottom: 2,
-  },
-  snippet: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: colors.inkMuted,
   },
   strip: {
     flexDirection: 'row',
@@ -599,11 +473,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: colors.inkMuted,
-  },
-  stripText: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.ink,
   },
 });
