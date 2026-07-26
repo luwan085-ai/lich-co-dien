@@ -170,6 +170,12 @@ export function CalendarPaper({
           </View>
         </View>
 
+        <View style={styles.lunarBanner}>
+          <Text style={[styles.lunarBannerText, bodyMed ? { fontFamily: bodyMed } : null]}>
+            🌙 Ngày {day.lunar.day} {day.lunar.monthLabel} ({day.lunar.lengthLabel})
+          </Text>
+        </View>
+
         {compact ? (
           <View style={styles.digestBlock}>
             <View style={styles.quoteBox}>
@@ -440,8 +446,25 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     color: colors.inkMuted,
   },
+  lunarBanner: {
+    backgroundColor: '#FFF5F4',
+    borderWidth: 1,
+    borderColor: '#F5B4AE',
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginTop: 4,
+    marginBottom: 4,
+    alignSelf: 'center',
+  },
+  lunarBannerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.crimson,
+    letterSpacing: 0.3,
+  },
   digestBlock: {
-    marginTop: 6,
+    marginTop: 4,
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 4,
