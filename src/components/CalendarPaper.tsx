@@ -172,7 +172,7 @@ export function CalendarPaper({
 
         <View style={styles.lunarBanner}>
           <Text style={[styles.lunarBannerText, bodyMed ? { fontFamily: bodyMed } : null]}>
-            🌙 Ngày {day.lunar.day} {day.lunar.monthLabel} ({day.lunar.lengthLabel})
+            🌙 Ngày {day.lunar.day} {day.lunar.monthLabel} âm
           </Text>
         </View>
 
