@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  Easing,
   Platform,
   Pressable,
   ScrollView,
@@ -67,13 +68,15 @@ export function HomeScreen({
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(bounceAnim, {
-          toValue: 6,
-          duration: 750,
+          toValue: 7,
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(bounceAnim, {
           toValue: 0,
-          duration: 750,
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: Platform.OS !== 'web',
         }),
       ])
