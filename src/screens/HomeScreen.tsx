@@ -380,21 +380,21 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   toolPrimary: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
     color: colors.crimson,
     letterSpacing: 0.3,
   },
   toolSecondary: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.inkFaint,
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: colors.inkMuted,
     letterSpacing: 0.2,
   },
   scrollCue: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.inkFaint,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.inkMuted,
     letterSpacing: 0.2,
   },
   shareCapture: {

@@ -27,7 +27,7 @@ export function BottomNav({ active, fontFamily, onPressTab }: Props) {
     <View style={styles.bar}>
       {TABS.map((tab) => {
         const isActive = active === tab.id;
-        const color = isActive ? colors.crimson : colors.navInactive;
+        const color = isActive ? colors.crimson : '#635A52';
         return (
           <Pressable
             key={tab.id}
@@ -36,11 +36,11 @@ export function BottomNav({ active, fontFamily, onPressTab }: Props) {
             accessibilityRole="tab"
             accessibilityLabel={tab.label}
             accessibilityState={{ selected: isActive }}
-            hitSlop={6}
+            hitSlop={8}
           >
             <Ionicons
               name={isActive ? tab.iconActive : tab.icon}
-              size={20}
+              size={23}
               color={color}
             />
             <Text
@@ -65,17 +65,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    paddingTop: 6,
-    paddingBottom: 4,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   item: {
     flex: 1,
     alignItems: 'center',
-    gap: 3,
-    minHeight: 44,
+    gap: 4,
+    minHeight: 50,
     justifyContent: 'center',
-    paddingVertical: 4,
-    borderTopWidth: 2,
+    paddingVertical: 3,
+    borderTopWidth: 2.5,
     borderTopColor: 'transparent',
     ...(Platform.OS === 'web'
       ? ({ outlineStyle: 'none' } as object)
@@ -85,8 +85,8 @@ const styles = StyleSheet.create({
     borderTopColor: colors.crimson,
   },
   label: {
-    fontSize: 9,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
     letterSpacing: 0.4,
   },
 });
