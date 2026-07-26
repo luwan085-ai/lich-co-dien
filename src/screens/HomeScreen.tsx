@@ -232,10 +232,7 @@ export function HomeScreen({
               }}
               accessibilityLabel="Scroll down"
             >
-              <View style={styles.chevronStack}>
-                <Ionicons name="chevron-down" size={16} color={colors.goldDark} style={{ marginBottom: -8 }} />
-                <Ionicons name="chevron-down" size={16} color={colors.goldDark} />
-              </View>
+              <Ionicons name="funnel" size={17} color={colors.goldDark} />
             </Pressable>
           </Animated.View>
         </View>
