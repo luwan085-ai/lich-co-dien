@@ -37,6 +37,8 @@ import { PremiumProvider } from './src/monetization/premium';
 import { bindGioNotificationTap } from './src/lib/notificationTap';
 import { colors } from './src/theme/tokens';
 
+import { Ionicons } from '@expo/vector-icons';
+
 function AppShell() {
   const [tab, setTab] = useState<TabId>('today');
   const [selected, setSelected] = useState<SolarDate>(() =>
@@ -45,6 +47,25 @@ function AppShell() {
   const [showGioList, setShowGioList] = useState(false);
   const [memoRefreshKey, setMemoRefreshKey] = useState(0);
   const todayRef = useRef<SolarDate>(getVietnamSolarToday());
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const styleId = 'expo-vector-icons-web-fallback';
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+          @font-face {
+            font-family: 'Ionicons';
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/ionicons/5.5.2/fonts/ionicons.ttf') format('truetype'),
+                 url('https://unpkg.com/ionicons@5.5.2/dist/chevrons-font.ttf') format('truetype');
+            font-display: swap;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     void (async () => {
@@ -114,6 +135,7 @@ function AppShell() {
     BeVietnamPro_500Medium,
     BeVietnamPro_700Bold,
     Mali_700Bold,
+    ...Ionicons.font,
   });
 
   const fonts = fontsLoaded
