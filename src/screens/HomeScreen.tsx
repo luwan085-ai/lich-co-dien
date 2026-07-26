@@ -132,7 +132,7 @@ export function HomeScreen({
           style={[
             styles.hero,
             viewportH > 0
-              ? { height: viewportH }
+              ? { height: Math.max(460, viewportH - 80) }
               : styles.heroFallback,
           ]}
         >
@@ -177,7 +177,9 @@ export function HomeScreen({
                 </Text>
               </Pressable>
             ) : (
-              <Text style={styles.scrollCue}>Vuốt lên · sắp tới & ngày âm</Text>
+              <Text style={styles.scrollCue}>
+                👇 Vuốt lên xem: Gợi ý · Sắp tới · Ý nguyện
+              </Text>
             )}
             <Pressable onPress={() => void onShare()}>
               <Text
