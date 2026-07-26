@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -57,6 +58,28 @@ export function HomeScreen({
 }: Props) {
   const tearRef = useRef<TearablePaperHandle>(null);
   const shareRef = useRef<View>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const bounceAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: 6,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 0,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [bounceAnim]);
+
   const [wishText, setWishText] = useState('');
   const [viewportH, setViewportH] = useState(0);
   const [gioTick, setGioTick] = useState(0);
@@ -122,6 +145,7 @@ export function HomeScreen({
       }}
     >
       <ScrollView
+        ref={scrollRef}
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -178,7 +202,7 @@ export function HomeScreen({
               </Pressable>
             ) : (
               <Text style={styles.scrollCue}>
-                👇 Vuốt lên xem: Gợi ý · Sắp tới · Ý nguyện
+                Gợi ý · Sắp tới · Ý nguyện
               </Text>
             )}
             <Pressable onPress={() => void onShare()}>
@@ -192,6 +216,31 @@ export function HomeScreen({
               </Text>
             </Pressable>
           </View>
+
+          <Animated.View
+            style={[
+              styles.floatingScrollWrap,
+              { transform: [{ translateY: bounceAnim }] },
+            ]}
+          >
+            <Pressable
+              style={styles.floatingScrollBtn}
+              onPress={() => {
+                const targetY = Math.max(460, viewportH - 80);
+                scrollRef.current?.scrollTo({ y: targetY, animated: true });
+              }}
+            >
+              <Text
+                style={[
+                  styles.floatingScrollText,
+                  fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null,
+                ]}
+              >
+                Cuộn xuống
+              </Text>
+              <Ionicons name="chevron-down-circle" size={16} color={colors.goldDark} />
+            </Pressable>
+          </Animated.View>
         </View>
 
         <View style={styles.shareCapture}>
@@ -419,5 +468,33 @@ const styles = StyleSheet.create({
     color: colors.inkFaint,
     marginBottom: 6,
     marginLeft: 2,
+  },
+  floatingScrollWrap: {
+    position: 'absolute',
+    bottom: 12,
+    right: 14,
+    zIndex: 20,
+  },
+  floatingScrollBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF9E6',
+    borderWidth: 1.5,
+    borderColor: '#E8B653',
+    borderRadius: 20,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    gap: 5,
+    shadowColor: '#8B5E00',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  floatingScrollText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.goldDark,
+    letterSpacing: 0.3,
   },
 });
