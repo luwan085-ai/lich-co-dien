@@ -14,6 +14,7 @@ import { DayCommitmentCard } from '../components/DayCommitmentCard';
 import { DayMemoCard } from '../components/DayMemoCard';
 import { DayPulseCompact } from '../components/DayPulseCompact';
 import { Ionicons } from '@expo/vector-icons';
+import { FunnelIcon } from '../components/SvgIcons';
 import { ShareDayCard } from '../components/ShareDayCard';
 import { UpcomingLunarCard } from '../components/UpcomingLunarCard';
 import { GoodDaysModal } from '../components/GoodDaysModal';
@@ -232,7 +233,7 @@ export function HomeScreen({
               }}
               accessibilityLabel="Scroll down"
             >
-              <Ionicons name="funnel" size={17} color={colors.goldDark} />
+              <FunnelIcon size={18} color={colors.goldDark} />
             </Pressable>
           </Animated.View>
         </View>

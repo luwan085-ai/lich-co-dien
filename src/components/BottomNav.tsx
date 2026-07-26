@@ -1,19 +1,22 @@
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/tokens';
+import {
+  CalendarIcon,
+  GridIcon,
+  ProfileIcon,
+  SparklesIcon,
+} from './SvgIcons';
 
 export type TabId = 'today' | 'month' | 'horoscope' | 'profile';
 
 const TABS: {
   id: TabId;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  iconActive: keyof typeof Ionicons.glyphMap;
 }[] = [
-  { id: 'today', label: 'HÔM NAY', icon: 'calendar-outline', iconActive: 'calendar' },
-  { id: 'month', label: 'THÁNG', icon: 'grid-outline', iconActive: 'grid' },
-  { id: 'horoscope', label: 'TỬ VI', icon: 'sparkles-outline', iconActive: 'sparkles' },
-  { id: 'profile', label: 'CÁ NHÂN', icon: 'person-outline', iconActive: 'person' },
+  { id: 'today', label: 'HÔM NAY' },
+  { id: 'month', label: 'THÁNG' },
+  { id: 'horoscope', label: 'TỬ VI' },
+  { id: 'profile', label: 'CÁ NHÂN' },
 ];
 
 type Props = {
@@ -27,7 +30,7 @@ export function BottomNav({ active, fontFamily, onPressTab }: Props) {
     <View style={styles.bar}>
       {TABS.map((tab) => {
         const isActive = active === tab.id;
-        const color = isActive ? colors.crimson : '#635A52';
+        const color = isActive ? colors.crimson : '#5C534A';
         return (
           <Pressable
             key={tab.id}
@@ -38,11 +41,10 @@ export function BottomNav({ active, fontFamily, onPressTab }: Props) {
             accessibilityState={{ selected: isActive }}
             hitSlop={8}
           >
-            <Ionicons
-              name={isActive ? tab.iconActive : tab.icon}
-              size={23}
-              color={color}
-            />
+            {tab.id === 'today' ? <CalendarIcon size={23} color={color} /> : null}
+            {tab.id === 'month' ? <GridIcon size={23} color={color} /> : null}
+            {tab.id === 'horoscope' ? <SparklesIcon size={23} color={color} /> : null}
+            {tab.id === 'profile' ? <ProfileIcon size={23} color={color} /> : null}
             <Text
               style={[
                 styles.label,
