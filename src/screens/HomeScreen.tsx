@@ -225,21 +225,17 @@ export function HomeScreen({
             ]}
           >
             <Pressable
-              style={styles.floatingScrollBtn}
+              style={styles.floatingChevronBtn}
               onPress={() => {
                 const targetY = Math.max(460, viewportH - 80);
                 scrollRef.current?.scrollTo({ y: targetY, animated: true });
               }}
+              accessibilityLabel="Scroll down"
             >
-              <Text
-                style={[
-                  styles.floatingScrollText,
-                  fonts?.bodySemi ? { fontFamily: fonts.bodySemi } : null,
-                ]}
-              >
-                Cuộn xuống
-              </Text>
-              <Ionicons name="chevron-down-circle" size={16} color={colors.goldDark} />
+              <View style={styles.chevronStack}>
+                <Ionicons name="chevron-down" size={16} color={colors.goldDark} style={{ marginBottom: -8 }} />
+                <Ionicons name="chevron-down" size={16} color={colors.goldDark} />
+              </View>
             </Pressable>
           </Animated.View>
         </View>
@@ -476,26 +472,24 @@ const styles = StyleSheet.create({
     right: 14,
     zIndex: 20,
   },
-  floatingScrollBtn: {
-    flexDirection: 'row',
+  floatingChevronBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#FFF9E6',
     borderWidth: 1.5,
     borderColor: '#E8B653',
-    borderRadius: 20,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-    gap: 5,
     shadowColor: '#8B5E00',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
   },
-  floatingScrollText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.goldDark,
-    letterSpacing: 0.3,
+  chevronStack: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -2,
   },
 });
